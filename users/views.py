@@ -1,6 +1,6 @@
 import jwt
 from django.urls import reverse
-from rest_framework import generics, status
+from rest_framework import generics, status, viewsets
 from rest_framework.generics import GenericAPIView
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import AllowAny
@@ -13,6 +13,11 @@ from .serializers import (
     LoginSerializer,
     EmailVerificationSerializer,
     GoogleSocialAuthSerializer,
+    UserListSerializer,
+)
+from .permissions import (
+    IsClient,
+    IsSuperUser,
 )
 from .utils import Util
 from rentit import settings
@@ -123,3 +128,28 @@ class GoogleSocialAuthView(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         data = ((serializer.validated_data)['auth_token'])
         return Response(data, status=status.HTTP_200_OK)
+
+
+class ClientViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.filter(role=2)
+    serializer_class = UserListSerializer
+    http_method_names = ['get', 'put', 'patch', 'delete']
+    # permission_classes = (IsSuperUser,)
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserListSerializer
+    http_method_names = ['get', 'put', 'patch', 'delete']
+
+
+class SupportViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.filter(role=1)
+    serializer_class = UserListSerializer
+    http_method_names = ['get', 'put', 'patch', 'delete']
+
+
+class AdminViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.filter(is_superuser=True)
+    serializer_class = UserListSerializer
+    http_method_names = ['get', 'put', 'patch', 'delete']
