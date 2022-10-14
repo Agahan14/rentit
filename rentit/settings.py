@@ -29,7 +29,7 @@ SECRET_KEY = config('SECRET_KEY')  # 'django-insecure-w=$38q@9d9c+z*0*5$)+is&-s%
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG')
 
-ALLOWED_HOSTS = ['localhost', 'neorentit.herokuapp.com']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition

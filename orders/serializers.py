@@ -13,7 +13,6 @@ class CartItemSerializer(serializers.ModelSerializer):
             'price',
             'product',
             'cart',
-            'total_price',
         ]
 
 
