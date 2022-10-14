@@ -8,7 +8,7 @@ schema_view = get_schema_view(
     openapi.Info(
         title = 'Rentit',
         default_version= 'v1',
-        description='description: api for medtech',
+        description='description: api for rentit',
         license=openapi.License(name="BSD License"),
     ),
     public=True,

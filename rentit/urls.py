@@ -16,6 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from orders.urls import orders_router
+from users.urls import users_router
 from patches import routers
 from .yasg import urlpatterns as doc_url
 
@@ -23,13 +24,14 @@ from .yasg import urlpatterns as doc_url
 router = routers.DefaultRouter()
 
 router.extend(orders_router)
+router.extend(users_router)
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('users/', include('users.urls')),
     path('', include(router.urls)),
-    path('dj-rest-auth/', include('dj_rest_auth.urls')),
+    # path('dj-rest-auth/', include('dj_rest_auth.urls')),
 ]
 
 urlpatterns += doc_url
