@@ -13,6 +13,7 @@ class SuperUser(BaseUserManager):
         other_fields.setdefault("is_staff", True)
         other_fields.setdefault("is_superuser", True)
         other_fields.setdefault("is_active", True)
+        other_fields.setdefault("role", 1)
 
         if other_fields.get("is_staff") is not True:
             raise ValueError("Superuser must be assigned to is_staff=True")
@@ -51,7 +52,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     address = models.CharField(max_length=255)
     phone = models.CharField(max_length=255, unique=True)
     role = models.PositiveSmallIntegerField(choices=ROLE_CHOICES, default=2)
-    birth_date = models.DateField()
+    birth_date = models.DateField(null=True)
     auth_provider = models.CharField(
         max_length=255, blank=False,
         null=False, default=AUTH_PROVIDERS.get('email'))
