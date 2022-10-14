@@ -6,7 +6,7 @@ from . import google
 from .register import register_social_user
 import os
 from rest_framework.exceptions import AuthenticationFailed
-
+from datetime import date, timedelta
 
 class RegisterUserSerializer(serializers.ModelSerializer):
 
@@ -121,3 +121,37 @@ class GoogleSocialAuthSerializer(serializers.Serializer):
         provider = 'google'
 
         return register_social_user(provider=provider, user_id=user_id, email=email, name=name)
+
+
+class UserListSerializer(serializers.ModelSerializer):
+    age = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'first_name',
+            'last_name',
+            'birth_date',
+            'age',
+            'is_active',
+            'front_pictures',
+            'back_pictures',
+            'face_pictures',
+            'email',
+            'phone',
+            'address',
+            'role',
+            'is_staff',
+            'is_active',
+            'is_superuser',
+            'date_joined',
+              ]
+        read_only_fields = ['is_active']
+
+    def get_age(self, obj):
+        today = date.today()
+        if obj.birth_date is None:
+            return None
+        return today.year - obj.birth_date.year - (
+                (today.month, today.day) < (obj.birth_date.month, obj.birth_date.day))
