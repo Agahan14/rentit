@@ -3,6 +3,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
     TokenObtainPairView,
 )
+from rest_framework.routers import DefaultRouter
 from rest_auth.views import (
     PasswordResetView, PasswordResetConfirmView
 )
@@ -11,7 +12,19 @@ from .views import (
     LoginView,
     VerifyEmailView,
     GoogleSocialAuthView,
+    ClientViewSet,
+    UserViewSet,
+    SupportViewSet,
+    AdminViewSet,
+
 )
+
+users_router = DefaultRouter()
+
+users_router.register(r'clients', ClientViewSet, basename='clients')
+users_router.register(r'supports', UserViewSet, basename='supports')
+users_router.register(r'admins', SupportViewSet, basename='admins')
+users_router.register(r'all-users', AdminViewSet, basename='all-users')
 
 urlpatterns = [
     path("register/", RegisterView.as_view()),
