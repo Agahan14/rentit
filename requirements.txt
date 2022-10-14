@@ -40,6 +40,7 @@ packaging==21.3
 passlib==1.7.4
 Pillow==9.2.0
 protobuf==4.21.7
+psycopg2==2.9.4
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
 pycryptodome==3.15.0
@@ -59,6 +60,7 @@ sqlparse==0.4.3
 uritemplate==3.0.1
 urllib3==1.26.12
 Werkzeug==2.2.2
+wheel=0.34.2
 whitenoise==6.2.0
 wrapt==1.14.1
 WTForms==3.0.1
