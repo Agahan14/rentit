@@ -17,8 +17,8 @@ class Cart(models.Model):
 class CartItem(models.Model):
     quantity = models.IntegerField(default=1)
     price = models.FloatField(default=0)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True)
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return f"{self.product} x {self.quantity}"
@@ -33,11 +33,13 @@ class CartItem(models.Model):
 class Order(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        null=True
     )
     cart = models.ForeignKey(
         Cart,
         on_delete=models.CASCADE,
+        null=True
     )
     order_date = models.DateTimeField(auto_now_add=True)
     total_price = models.FloatField(blank=True, null=True)
