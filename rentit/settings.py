@@ -27,9 +27,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY')  # 'django-insecure-w=$38q@9d9c+z*0*5$)+is&-s%m_c$7ktbh-8)bryxbvj!*b3v'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', cast=bool)
+DEBUG = config('DEBUG')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -54,8 +54,6 @@ INSTALLED_APPS = [
     # 'allauth.socialaccount',
     # 'allauth.socialaccount.providers.google',
     'authentication',
-    'cloudinary_storage',
-    'cloudinary',
 
     #apps
     'users',

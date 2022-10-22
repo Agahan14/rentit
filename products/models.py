@@ -72,15 +72,16 @@ class Product(models.Model):
         blank=True,
         null=True,
     )
-    days = models.ForeignKey("Date", on_delete=models.CASCADE)
+    days = models.ForeignKey("Date", on_delete=models.CASCADE, null=True)
     rate = models.PositiveSmallIntegerField(choices=rates, default=1)
     category = models.ForeignKey(
         ProductCategory,
         related_name="category",
         on_delete=models.CASCADE,
+        null=True,
     )
     user = models.ForeignKey(settings.AUTH_USER_MODEL,
-                             on_delete=models.CASCADE)
+                             on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return self.name
@@ -110,8 +111,8 @@ class DetailCategory(models.Model):
 
 
 class Comment(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True)
     content = models.TextField()
     replies = models.ForeignKey("self", on_delete=models.CASCADE, null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True)
