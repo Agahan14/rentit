@@ -43,3 +43,29 @@ class IsOrderClient(BasePermission):
         if request.user.is_anonymous or request.user.role == 2 and request.method not in self.edit_methods:
             return True
         return False
+
+
+class IsSupport(BasePermission):
+    """
+    Allows access only to client
+    """
+
+    edit_methods = "DELETE"
+
+    message = "Sorry but access only for clients"
+
+    def has_permission(self, request, view):
+        return bool(
+            request.user.is_anonymous
+            or request.user.role == 1
+            and request.method not in self.edit_methods
+
+        )
+
+    def has_object_permission(self, request, view, obj):
+
+        if request.method in SAFE_METHODS:
+            return True
+        if request.user.is_anonymous or request.user.role == 1 and request.method not in self.edit_methods:
+            return True
+        return False
