@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from products.urls import products_router
 from orders.urls import orders_router
 from users.urls import users_router
 from patches import routers
@@ -25,6 +26,7 @@ router = routers.DefaultRouter()
 
 router.extend(orders_router)
 router.extend(users_router)
+router.extend(products_router)
 
 
 urlpatterns = [

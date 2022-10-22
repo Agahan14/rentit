@@ -49,7 +49,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True, null=True)
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
-    address = models.CharField(max_length=255)
     phone = models.CharField(max_length=255, unique=True)
     role = models.PositiveSmallIntegerField(choices=ROLE_CHOICES, default=2)
     birth_date = models.DateField(null=True)
@@ -71,3 +70,33 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return f"{self.email}"
+
+
+class Address(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+    )
+    country = models.CharField(max_length=255)
+    city = models.CharField(max_length=255)
+    district = models.CharField(max_length=255)
+    street = models.CharField(max_length=255)
+    postal_code = models.CharField(max_length=255)
+    building_number = models.IntegerField(default=1)
+    apartment_number = models.IntegerField(default=1)
+    map = models.ForeignKey(
+        "Map",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+
+    def __str__(self):
+        return self.user
+
+
+class Map(models.Model):
+    longitude = models.IntegerField(default=1)
+    latitude = models.IntegerField(default=1)
