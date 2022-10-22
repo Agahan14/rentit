@@ -16,6 +16,8 @@ from .views import (
     UserViewSet,
     SupportViewSet,
     AdminViewSet,
+    AddressViewSet,
+    MaViewSet,
 
 )
 
@@ -25,6 +27,9 @@ users_router.register(r'clients', ClientViewSet, basename='clients')
 users_router.register(r'supports', UserViewSet, basename='supports')
 users_router.register(r'admins', SupportViewSet, basename='admins')
 users_router.register(r'all-users', AdminViewSet, basename='all-users')
+users_router.register(r'address', AddressViewSet)
+users_router.register(r'map', MaViewSet)
+
 
 urlpatterns = [
     path("register/", RegisterView.as_view()),

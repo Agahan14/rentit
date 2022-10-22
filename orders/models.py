@@ -11,7 +11,7 @@ class Cart(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"Cart {self.pk} {self.user}"
+        return f"{self.pk}"
 
 
 class CartItem(models.Model):
@@ -21,7 +21,7 @@ class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.product} x{self.quantity}"
+        return f"{self.product} x {self.quantity}"
 
     def save(self, *args, **kwargs):
         self.price = (
@@ -41,7 +41,6 @@ class Order(models.Model):
     )
     order_date = models.DateTimeField(auto_now_add=True)
     total_price = models.FloatField(blank=True, null=True)
-
 
     def __str__(self):
         return f"{self.id} {self.user}"

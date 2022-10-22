@@ -1,12 +1,17 @@
 from rest_framework import serializers
-from .models import User
+from .models import (
+    User,
+    Address,
+    Map,
+)
 from rentit import settings
 from rest_auth.serializers import PasswordResetSerializer as _PasswordResetSerializer
 from . import google
 from .register import register_social_user
 import os
 from rest_framework.exceptions import AuthenticationFailed
-from datetime import date, timedelta
+from datetime import date
+
 
 class RegisterUserSerializer(serializers.ModelSerializer):
 
@@ -155,3 +160,29 @@ class UserListSerializer(serializers.ModelSerializer):
             return None
         return today.year - obj.birth_date.year - (
                 (today.month, today.day) < (obj.birth_date.month, obj.birth_date.day))
+
+
+class AddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Address
+        fields = [
+            'id',
+            'user',
+            'country',
+            'city',
+            'district',
+            'street',
+            'postal_code',
+            'building_number',
+            'apartment_number',
+            'map',
+        ]
+
+
+class MapSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Map
+        fields = [
+            'longitude',
+            'latitude',
+        ]

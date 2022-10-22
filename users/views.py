@@ -7,13 +7,19 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import User
+from .models import (
+    User,
+    Address,
+    Map,
+)
 from .serializers import (
     RegisterUserSerializer,
     LoginSerializer,
     EmailVerificationSerializer,
     GoogleSocialAuthSerializer,
     UserListSerializer,
+    AddressSerializer,
+    MapSerializer,
 )
 from .permissions import (
     IsClient,
@@ -153,3 +159,13 @@ class AdminViewSet(viewsets.ModelViewSet):
     queryset = User.objects.filter(is_superuser=True)
     serializer_class = UserListSerializer
     http_method_names = ['get', 'put', 'patch', 'delete']
+
+
+class AddressViewSet(viewsets.ModelViewSet):
+    queryset = Address.objects.all()
+    serializer_class = AddressSerializer
+
+
+class MaViewSet(viewsets.ModelViewSet):
+    queryset = Map.objects.all()
+    serializer_class = MapSerializer
