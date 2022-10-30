@@ -46,14 +46,14 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     # 'allauth',
     # 'dj_rest_auth',
     'rest_auth',
     'rest_auth.registration',
-    # 'allauth.account',
-    # 'allauth.socialaccount',
-    # 'allauth.socialaccount.providers.google',
-    'authentication',
+    'oauth2_provider',
+    'social_django',
+    'drf_social_oauth2',
 
     #apps
     'users',
@@ -62,6 +62,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    # 'social_django.middleware.SocialAuthExceptionMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -88,6 +89,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
             ],
         },
     },
@@ -162,6 +165,8 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
         "rest_framework.authentication.BasicAuthentication",
         "rest_framework.authentication.SessionAuthentication",
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+        'drf_social_oauth2.authentication.SocialAuthentication',
     ],
     # 'DEFAULT_FILTER_BACKENDS': [
     #     'django_filters.rest_framework.DjangoFilterBackend'
@@ -170,6 +175,20 @@ REST_FRAMEWORK = {
     'DATE_FORMAT': '%d.%m.%Y',
     'TIME_FORMAT': '%H:%M',
 }
+
+AUTHENTICATION_BACKENDS = (
+    'social_core.backends.google.GoogleOAuth2',
+    # 'rest_framework_social_oauth2.backends.DjangoOAuth2',
+    'social_core.backends.facebook.FacebookAppOAuth2',
+    'social_core.backends.facebook.FacebookOAuth2',
+
+    # drf_social_oauth2
+    'drf_social_oauth2.backends.DjangoOAuth2',
+
+    # Django
+    'django.contrib.auth.backends.ModelBackend',
+)
+
 REST_AUTH_SERIALIZERS = {
     'PASSWORD_RESET_SERIALIZER':
         'users.serializers.PasswordResetSerializer',
@@ -200,6 +219,12 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
 }
 
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '846501750405-i4drfuhb3aa5tgubhf22v9o55d1ul000.apps.googleusercontent.com'
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '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'
+SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile', 'openid']
+SOCIAL_AUTH_GOOGLE_OAUTH2_EXTRA_DATA = ['first_name', 'last_name']
+
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
@@ -212,3 +237,7 @@ CLOUDINARY_STORAGE = {
     'API_KEY': config('API_KEY'),
     'API_SECRET': config('API_SECRET'),
 }
+
+TWILIO_ACCOUNT_SID = "ACdeb64be8247471d24bf58c28e45b89ac"
+TWILIO_AUTH_TOKEN = "a857b4819bc02678ef1693c63bf9307b"
+TWILIO_PHONE_NUMBER = "+16802195991"

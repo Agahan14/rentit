@@ -1,41 +1,56 @@
-import jwt
+import jwt, random, string
 from django.urls import reverse
-from rest_framework import generics, status, viewsets
-from rest_framework.generics import GenericAPIView
-from rest_framework.exceptions import AuthenticationFailed
+from django.core.mail import send_mail
+from rentit import settings
+from rest_framework import (
+    generics,
+    status,
+    viewsets,
+    exceptions,
+)
+from rest_framework.exceptions import (
+    AuthenticationFailed,
+    NotAcceptable,
+)
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from twilio.rest import Client
+from .utils import Util
 from .models import (
     User,
     Address,
     Map,
+    PasswordReset,
+    PasswordResetByPhone,
 )
 from .serializers import (
     RegisterUserSerializer,
     LoginSerializer,
     EmailVerificationSerializer,
-    GoogleSocialAuthSerializer,
     UserListSerializer,
     AddressSerializer,
     MapSerializer,
+    CustomUserSerializer,
 )
 from .permissions import (
     IsClient,
     IsSuperUser,
 )
-from .utils import Util
-from rentit import settings
-# from allauth.socialaccount.providers.oauth2.client import OAuth2Client
-# from rest_auth.registration.views import SocialConnectView, SocialLoginView
-# from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
-# from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
-from django.views.decorators.debug import sensitive_post_parameters
-from django.utils.decorators import method_decorator
-sensitive_post_parameters_m = method_decorator(
-    sensitive_post_parameters("password1", "password2")
-)
+
+
+class CustomUserCreate(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request, format='json'):
+        serializer = CustomUserSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            if user:
+                json = serializer.data
+                return Response(json, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class RegisterView(generics.GenericAPIView):
@@ -120,24 +135,109 @@ class LoginView(generics.GenericAPIView):
         )
 
 
-class GoogleSocialAuthView(GenericAPIView):
-
-    serializer_class = GoogleSocialAuthSerializer
-
+class ForgotPasswordByPhoneAPIView(APIView):
     def post(self, request):
-        """
-        POST with "auth_token"
-        Send an idtoken as from google to get user information
-        """
+        phone = request.data['phone']
+        try:
+            user = User.objects.get(phone=phone)
+        except User.DoesNotExist:
+            raise NotAcceptable("Please enter a valid phone.")
+        token = ''.join(random.choice(string.digits) for _ in range(6))
 
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        data = ((serializer.validated_data)['auth_token'])
-        return Response(data, status=status.HTTP_200_OK)
+        PasswordResetByPhone.objects.create(phone=phone, token=token)
+
+        account_sid = "ACdeb64be8247471d24bf58c28e45b89ac"
+        auth_token = "a857b4819bc02678ef1693c63bf9307b"
+        client = Client(account_sid, auth_token)
+
+        message = client.messages.create(
+            body='Your verification PIN is: ' + token,
+            from_="+16802195991",
+            to=request.data['phone'],
+        )
+
+        print(message.sid)
+
+        return Response({
+            'message': 'Please check your phone!'
+        })
+
+
+class ForgotPasswordAPIView(APIView):
+    def post(self, request):
+        email = request.data['email']
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            raise NotAcceptable("Please enter a valid email.")
+        token = ''.join(random.choice(string.digits) for _ in range(6))
+
+        PasswordReset.objects.create(email=email, token=token)
+
+        send_mail(
+            subject='Reset your password!',
+            message='Use this code to reset your password: ' + token,
+            from_email=getattr(settings, 'EMAIL_HOST_USER'),
+            recipient_list=[email]
+        )
+
+        return Response({
+            'message': 'Please check your email!'
+        })
+
+
+class ResetPasswordAPIView(APIView):
+    def post(self, request):
+        data = request.data
+
+        if data['password'] != data['password_confirm']:
+            raise exceptions.APIException('Password do not match')
+
+        passwordReset = PasswordReset.objects.filter(token=data['token']).first()
+
+        user = User.objects.filter(email=passwordReset.email).first()
+
+        if not user:
+            raise exceptions.NotFound('User not found!')
+
+        # PasswordReset.objects.update(token="agahasndasd")
+
+        user.set_password(data['password'])
+        # passwordReset.save()
+
+        user.save()
+
+        return Response({
+                'message': 'success'
+            })
+
+
+class ResetPasswordByPhoneAPIView(APIView):
+    def post(self, request):
+        data = request.data
+
+        if data['password'] != data['password_confirm']:
+            raise exceptions.APIException('Password do not match')
+
+        passwordResetByPhone = PasswordResetByPhone.objects.filter(token=data['token']).first()
+
+        user = User.objects.filter(phone=passwordResetByPhone.phone).first()
+
+        if not user:
+            raise exceptions.NotFound('User not found!')
+
+
+        user.set_password(data['password'])
+
+        user.save()
+
+        return Response({
+                'message': 'success'
+            })
 
 
 class ClientViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.filter(role=2)
+    queryset = User.objects.filter(is_staff=False)
     serializer_class = UserListSerializer
     http_method_names = ['get', 'put', 'patch', 'delete']
     # permission_classes = (IsSuperUser,)
@@ -150,7 +250,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class SupportViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.filter(role=1)
+    queryset = User.objects.filter(is_staff=True).filter(is_superuser=False)
     serializer_class = UserListSerializer
     http_method_names = ['get', 'put', 'patch', 'delete']
 
@@ -166,6 +266,6 @@ class AddressViewSet(viewsets.ModelViewSet):
     serializer_class = AddressSerializer
 
 
-class MaViewSet(viewsets.ModelViewSet):
+class MapViewSet(viewsets.ModelViewSet):
     queryset = Map.objects.all()
     serializer_class = MapSerializer
