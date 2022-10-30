@@ -72,6 +72,7 @@ class Product(models.Model):
         blank=True,
         null=True,
     )
+    quantity = models.IntegerField(default=1)
     days = models.ForeignKey("Date", on_delete=models.CASCADE, null=True)
     rate = models.PositiveSmallIntegerField(choices=rates, default=1)
     category = models.ForeignKey(

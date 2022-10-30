@@ -13,7 +13,7 @@ class SuperUser(BaseUserManager):
         other_fields.setdefault("is_staff", True)
         other_fields.setdefault("is_superuser", True)
         other_fields.setdefault("is_active", True)
-        other_fields.setdefault("role", 1)
+        other_fields.setdefault("is_verified", True)
 
         if other_fields.get("is_staff") is not True:
             raise ValueError("Superuser must be assigned to is_staff=True")
@@ -21,6 +21,8 @@ class SuperUser(BaseUserManager):
             raise ValueError("Superuser must be assigned to is_superuser=True")
         if other_fields.get("is_active") is not True:
             raise ValueError("Superuser must be assigned to is_active=True")
+        if other_fields.get("is_verified") is not True:
+            raise ValueError("Superuser must be assigned to is_verified=True")
         return self.create_user(email, password, **other_fields)
 
     def create_user(self, email, password, **other_fields):
@@ -37,24 +39,13 @@ class SuperUser(BaseUserManager):
         return user
 
 
-AUTH_PROVIDERS = {'google': 'google',
-                  'email': 'email',}
-
-
 class User(AbstractBaseUser, PermissionsMixin):
-    ROLE_CHOICES = (
-        (1, "Support"),
-        (2, "Client"),
-    )
+    username = models.CharField(max_length=150, unique=True, null=True)
     email = models.EmailField(unique=True, null=True)
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
     phone = models.CharField(max_length=255, unique=True)
-    role = models.PositiveSmallIntegerField(choices=ROLE_CHOICES, default=2)
     birth_date = models.DateField(null=True)
-    auth_provider = models.CharField(
-        max_length=255, blank=False,
-        null=False, default=AUTH_PROVIDERS.get('email'))
     front_pictures = models.ImageField(blank=True, null=True, upload_to='images/')
     back_pictures = models.ImageField(blank=True, null=True, upload_to='images/')
     face_pictures = models.ImageField(blank=True, null=True, upload_to='images/')
@@ -65,11 +56,22 @@ class User(AbstractBaseUser, PermissionsMixin):
     date_joined = models.DateTimeField(default=timezone.now)
 
     USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ['username', 'first_name']
 
     objects = SuperUser()
 
     def __str__(self):
         return f"{self.email}"
+
+
+class PasswordReset(models.Model):
+    email = models.CharField(max_length=255)
+    token = models.CharField(max_length=255, unique=True)
+
+
+class PasswordResetByPhone(models.Model):
+    phone = models.CharField(max_length=255)
+    token = models.CharField(max_length=255, unique=True)
 
 
 class Address(models.Model):
