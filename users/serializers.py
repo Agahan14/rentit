@@ -4,13 +4,30 @@ from .models import (
     Address,
     Map,
 )
-from rentit import settings
-from rest_auth.serializers import PasswordResetSerializer as _PasswordResetSerializer
-from . import google
-from .register import register_social_user
-import os
-from rest_framework.exceptions import AuthenticationFailed
 from datetime import date
+
+
+class CustomUserSerializer(serializers.ModelSerializer):
+    """
+    Currently unused in preference of the below.
+    """
+    email = serializers.EmailField(required=True)
+    username = serializers.CharField(required=True)
+    password = serializers.CharField(min_length=8, write_only=True)
+
+    class Meta:
+        model = User
+        fields = ('email', 'username', 'password')
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def create(self, validated_data):
+        password = validated_data.pop('password', None)
+        # as long as the fields are the same, we can just use this
+        instance = self.Meta.model(**validated_data)
+        if password is not None:
+            instance.set_password(password)
+        instance.save()
+        return instance
 
 
 class RegisterUserSerializer(serializers.ModelSerializer):
@@ -35,7 +52,6 @@ class RegisterUserSerializer(serializers.ModelSerializer):
             "front_pictures",
             "back_pictures",
             "face_pictures",
-            "address",
             'message',
         )
 
@@ -71,61 +87,10 @@ class LoginSerializer(serializers.ModelSerializer):
         required=True,
         style={'input_type': 'password', 'placeholder': 'Password'}
     )
-    role = serializers.CharField(read_only=True)
 
     class Meta:
         model = User
-        fields = ["email", "password", "role"]
-
-
-class PasswordResetSerializer(_PasswordResetSerializer):
-
-    def save(self):
-        request = self.context.get('request')
-        opts = {
-            'use_https': request.is_secure(),
-            'from_email': getattr(settings, 'EMAIL_HOST_USER'),
-
-            'email_template_name': 'reset_password.html',
-
-            'request': request
-        }
-        self.reset_form.save(**opts)
-
-    def validate_email(self, value):
-        # Create PasswordResetForm with the serializer
-        self.reset_form = self.password_reset_form_class(data=self.initial_data)
-        if not self.reset_form.is_valid():
-            raise serializers.ValidationError('Error')
-
-        if not User.objects.filter(email=value).exists():
-            raise serializers.ValidationError('Invalid e-mail address')
-
-        return value
-
-
-class GoogleSocialAuthSerializer(serializers.Serializer):
-    auth_token = serializers.CharField()
-
-    def validate_auth_token(self, auth_token):
-        user_data = google.Google.validate(auth_token)
-        try:
-            user_data['sub']
-        except:
-            raise serializers.ValidationError(
-                'The token is invalid or expired. Please login again.'
-            )
-
-        if user_data['aud'] != os.environ.get('GOOGLE_CLIENT_ID'):
-
-            raise AuthenticationFailed('oops, who are you?')
-
-        user_id = user_data['sub']
-        email = user_data['email']
-        name = user_data['name']
-        provider = 'google'
-
-        return register_social_user(provider=provider, user_id=user_id, email=email, name=name)
+        fields = ["email", "password"]
 
 
 class UserListSerializer(serializers.ModelSerializer):
@@ -145,10 +110,7 @@ class UserListSerializer(serializers.ModelSerializer):
             'face_pictures',
             'email',
             'phone',
-            'address',
-            'role',
             'is_staff',
-            'is_active',
             'is_superuser',
             'date_joined',
               ]
