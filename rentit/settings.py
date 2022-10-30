@@ -244,9 +244,9 @@ EMAIL_HOST_USER = "Imamidinov.agahan06@gmail.com"
 EMAIL_HOST_PASSWORD = 'niopyhumsvabprug'
 
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': config('CLOUD_NAME'),
-    'API_KEY': config('API_KEY'),
-    'API_SECRET': config('API_SECRET'),
+    'CLOUD_NAME': 'neomedtech',
+    'API_KEY': '593439743526366',
+    'API_SECRET': 'a7qdOtRCrkSX3V8RaFvy_0lQdkY',
 }
 
 TWILIO_ACCOUNT_SID = "ACdeb64be8247471d24bf58c28e45b89ac"
