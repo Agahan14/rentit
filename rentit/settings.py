@@ -104,12 +104,24 @@ WSGI_APPLICATION = 'rentit.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if DEBUG:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'db',
+            'USER': 'db',
+            'PASSWORD': 'AVNS_cdor6vbS26uOtIetPeC',
+            'HOST': 'app-5e2ccd5f-7a9b-4c8d-8444-4a5ce4cb747b-do-user-12716065-0.b.db.ondigitalocean.com',
+            'PORT': '25060',
+        }
+    }
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 db_from_env = dj_database_url.config(default=DATABASE_URL, conn_max_age=500, ssl_require=True)
