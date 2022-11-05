@@ -3,14 +3,32 @@ from .models import (
     User,
     Address,
     Map,
+    FollowingSystem,
 )
-from rentit import settings
-from rest_auth.serializers import PasswordResetSerializer as _PasswordResetSerializer
-from . import google
-from .register import register_social_user
-import os
-from rest_framework.exceptions import AuthenticationFailed
 from datetime import date
+
+
+class CustomUserSerializer(serializers.ModelSerializer):
+    """
+    Currently unused in preference of the below.
+    """
+    email = serializers.EmailField(required=True)
+    username = serializers.CharField(required=True)
+    password = serializers.CharField(min_length=8, write_only=True)
+
+    class Meta:
+        model = User
+        fields = ('email', 'username', 'password')
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def create(self, validated_data):
+        password = validated_data.pop('password', None)
+        # as long as the fields are the same, we can just use this
+        instance = self.Meta.model(**validated_data)
+        if password is not None:
+            instance.set_password(password)
+        instance.save()
+        return instance
 
 
 class RegisterUserSerializer(serializers.ModelSerializer):
@@ -35,8 +53,7 @@ class RegisterUserSerializer(serializers.ModelSerializer):
             "front_pictures",
             "back_pictures",
             "face_pictures",
-            "address",
-            'message',
+            "message",
         )
 
     def get_message(self, obj):
@@ -71,64 +88,58 @@ class LoginSerializer(serializers.ModelSerializer):
         required=True,
         style={'input_type': 'password', 'placeholder': 'Password'}
     )
-    role = serializers.CharField(read_only=True)
 
     class Meta:
         model = User
-        fields = ["email", "password", "role"]
-
-
-class PasswordResetSerializer(_PasswordResetSerializer):
-
-    def save(self):
-        request = self.context.get('request')
-        opts = {
-            'use_https': request.is_secure(),
-            'from_email': getattr(settings, 'EMAIL_HOST_USER'),
-
-            'email_template_name': 'reset_password.html',
-
-            'request': request
-        }
-        self.reset_form.save(**opts)
-
-    def validate_email(self, value):
-        # Create PasswordResetForm with the serializer
-        self.reset_form = self.password_reset_form_class(data=self.initial_data)
-        if not self.reset_form.is_valid():
-            raise serializers.ValidationError('Error')
-
-        if not User.objects.filter(email=value).exists():
-            raise serializers.ValidationError('Invalid e-mail address')
-
-        return value
-
-
-class GoogleSocialAuthSerializer(serializers.Serializer):
-    auth_token = serializers.CharField()
-
-    def validate_auth_token(self, auth_token):
-        user_data = google.Google.validate(auth_token)
-        try:
-            user_data['sub']
-        except:
-            raise serializers.ValidationError(
-                'The token is invalid or expired. Please login again.'
-            )
-
-        if user_data['aud'] != os.environ.get('GOOGLE_CLIENT_ID'):
-
-            raise AuthenticationFailed('oops, who are you?')
-
-        user_id = user_data['sub']
-        email = user_data['email']
-        name = user_data['name']
-        provider = 'google'
-
-        return register_social_user(provider=provider, user_id=user_id, email=email, name=name)
+        fields = ["email", "password"]
 
 
 class UserListSerializer(serializers.ModelSerializer):
+    age = serializers.SerializerMethodField()
+    follower_count = serializers.SerializerMethodField()
+    following_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'first_name',
+            'last_name',
+            'birth_date',
+            'age',
+            'front_pictures',
+            'back_pictures',
+            'face_pictures',
+            'email',
+            'following',
+            'followers',
+            'follower_count',
+            'following_count',
+            'phone',
+            'is_active',
+            'is_staff',
+            'is_superuser',
+            'is_verified',
+            'date_joined',
+              ]
+
+    def get_age(self, obj):
+        today = date.today()
+        if obj.birth_date is None:
+            return None
+        return today.year - obj.birth_date.year - (
+                (today.month, today.day) < (obj.birth_date.month, obj.birth_date.day))
+
+    def get_follower_count(self, obj):
+        count = obj.followers.count()
+        return count
+
+    def get_following_count(self, obj):
+        count = obj.following.count()
+        return count
+
+
+class UserMiniSerializer(serializers.ModelSerializer):
     age = serializers.SerializerMethodField()
 
     class Meta:
@@ -140,15 +151,9 @@ class UserListSerializer(serializers.ModelSerializer):
             'birth_date',
             'age',
             'is_active',
-            'front_pictures',
-            'back_pictures',
-            'face_pictures',
             'email',
             'phone',
-            'address',
-            'role',
             'is_staff',
-            'is_active',
             'is_superuser',
             'date_joined',
               ]
@@ -185,4 +190,42 @@ class MapSerializer(serializers.ModelSerializer):
         fields = [
             'longitude',
             'latitude',
+        ]
+
+
+class UserContactSerializer(serializers.ModelSerializer):
+    action = serializers.CharField()
+
+    class Meta:
+        model = FollowingSystem
+        fields = [
+            'user_to',
+            'action',
+        ]
+
+
+class UserFollowingSerializer(serializers.ModelSerializer):
+    following = UserListSerializer(many=True, read_only=True)
+    followers = UserListSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = User
+        fields = [
+            'following',
+            'followers',
+        ]
+
+
+class ApproveUserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'first_name',
+            'email',
+            'front_pictures',
+            'back_pictures',
+            'face_pictures',
+            'is_active',
         ]

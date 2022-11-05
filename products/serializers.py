@@ -31,10 +31,8 @@ class BannerSerializer(serializers.ModelSerializer):
         model = Banner
         fields = [
             'id',
-            'name',
-            'image',
-            'product',
-            'banner',
+            'title',
+            'description',
         ]
 
 
@@ -53,7 +51,7 @@ class DetailCategorySerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'title',
-            'detal',
+            'detail',
         ]
 
 
@@ -90,6 +88,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'description',
             'detail',
             'price',
+            'quantity',
             'is_watched',
             'is_favorite',
             'created_date',

@@ -30,10 +30,11 @@ router.extend(products_router)
 
 
 urlpatterns = [
+    path('auth/', include('drf_social_oauth2.urls', namespace='drf')),
     path('admin/', admin.site.urls),
     path('users/', include('users.urls')),
     path('', include(router.urls)),
-    # path('dj-rest-auth/', include('dj_rest_auth.urls')),
+
 ]
 
 urlpatterns += doc_url

@@ -10,7 +10,7 @@ from .views import (
 orders_router = DefaultRouter()
 
 orders_router.register(r'cart', CartViewSet)
-orders_router.register(r'cart-item', CartItemViewSet)
+orders_router.register(r'cart-item', CartItemViewSet, basename='cart-item')
 orders_router.register(r'orders', OrderViewSet)
 
 urlpatterns = [
