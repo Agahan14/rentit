@@ -19,6 +19,8 @@ from .views import (
     ForgotPasswordByPhoneAPIView,
     ForgotPasswordAPIView,
     CustomUserCreate,
+    UserContactViewSet,
+    ApproveUserViewSet,
 )
 
 
@@ -28,6 +30,8 @@ users_router.register(r'clients', ClientViewSet, basename='clients')
 users_router.register(r'supports', SupportViewSet, basename='supports')
 users_router.register(r'admins', AdminViewSet, basename='admins')
 users_router.register(r'all-users', UserViewSet, basename='all-users')
+users_router.register(r'followers', UserContactViewSet, basename='followers')
+users_router.register(r'approve-user', ApproveUserViewSet, basename='approve-user')
 users_router.register(r'address', AddressViewSet)
 users_router.register(r'map', MapViewSet)
 

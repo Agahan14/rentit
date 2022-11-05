@@ -1,17 +1,21 @@
 import jwt, random, string
 from django.urls import reverse
 from django.core.mail import send_mail
+from rest_framework.generics import get_object_or_404
+
 from rentit import settings
 from rest_framework import (
     generics,
     status,
     viewsets,
     exceptions,
+    filters,
 )
 from rest_framework.exceptions import (
     AuthenticationFailed,
     NotAcceptable,
 )
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -24,15 +28,20 @@ from .models import (
     Map,
     PasswordReset,
     PasswordResetByPhone,
+    FollowingSystem,
 )
 from .serializers import (
     RegisterUserSerializer,
     LoginSerializer,
     EmailVerificationSerializer,
     UserListSerializer,
+    UserMiniSerializer,
     AddressSerializer,
     MapSerializer,
     CustomUserSerializer,
+    UserContactSerializer,
+    UserFollowingSerializer,
+    ApproveUserSerializer,
 )
 from .permissions import (
     IsClient,
@@ -65,6 +74,8 @@ class RegisterView(generics.GenericAPIView):
             user_data = serializer.data
 
             user = User.objects.get(email=user_data["email"])
+            # user.is_active = False
+            # user.save()
             token = RefreshToken.for_user(user)
             current_site = request.get_host()
             link = reverse("email_verify")
@@ -142,7 +153,7 @@ class ForgotPasswordByPhoneAPIView(APIView):
             user = User.objects.get(phone=phone)
         except User.DoesNotExist:
             raise NotAcceptable("Please enter a valid phone.")
-        token = ''.join(random.choice(string.digits) for _ in range(6))
+        token = ''.join(random.choice(string.digits) for _ in range(4))
 
         PasswordResetByPhone.objects.create(phone=phone, token=token)
 
@@ -170,7 +181,7 @@ class ForgotPasswordAPIView(APIView):
             user = User.objects.get(email=email)
         except User.DoesNotExist:
             raise NotAcceptable("Please enter a valid email.")
-        token = ''.join(random.choice(string.digits) for _ in range(6))
+        token = ''.join(random.choice(string.digits) for _ in range(4))
 
         PasswordReset.objects.create(email=email, token=token)
 
@@ -247,17 +258,24 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserListSerializer
     http_method_names = ['get', 'put', 'patch', 'delete']
+    filter_backends = (
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter,
+    )
+    filterset_fields = ('birth_date', 'first_name', 'email', 'phone')
+    search_fields = ['email', 'phone', 'first_name', 'last_name',]
 
 
 class SupportViewSet(viewsets.ModelViewSet):
     queryset = User.objects.filter(is_staff=True).filter(is_superuser=False)
-    serializer_class = UserListSerializer
+    serializer_class = UserMiniSerializer
     http_method_names = ['get', 'put', 'patch', 'delete']
 
 
 class AdminViewSet(viewsets.ModelViewSet):
     queryset = User.objects.filter(is_superuser=True)
-    serializer_class = UserListSerializer
+    serializer_class = UserMiniSerializer
     http_method_names = ['get', 'put', 'patch', 'delete']
 
 
@@ -269,3 +287,47 @@ class AddressViewSet(viewsets.ModelViewSet):
 class MapViewSet(viewsets.ModelViewSet):
     queryset = Map.objects.all()
     serializer_class = MapSerializer
+
+
+class UserContactViewSet(viewsets.ViewSet):
+    serializer_class = UserContactSerializer
+    # permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'username'
+
+    def create(self, request):
+        serializer = UserContactSerializer(data=request.data)
+        if serializer.is_valid():
+            # user being followed
+            to_user = User.objects.get(id=serializer.data['user_to'])
+
+            # you cant follow yourself lol
+            if self.request.user != to_user:
+                try:
+                    if serializer.data['action'] == 'follow':
+                        FollowingSystem.objects.get_or_create(user_from=self.request.user, user_to=to_user)
+
+                    if serializer.data['action'] == 'unfollow':
+                        FollowingSystem.objects.filter(user_from=self.request.user, user_to=to_user).delete()
+
+                    followers_followings = UserFollowingSerializer(self.request.user)
+                    return Response(followers_followings.data)
+
+                except:
+                    return Response({'status': 'error'})
+            else:
+                return Response({'status': 'no need to follow yourself'})
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # authenticated user can search for any user's public info
+    def retrieve(self, request, username=None):
+        queryset = User.objects.all()
+        user = get_object_or_404(queryset, username=username)
+        serializer = UserFollowingSerializer(user)
+        return Response(serializer.data)
+
+
+class ApproveUserViewSet(viewsets.ModelViewSet):
+    serializer_class = ApproveUserSerializer
+    queryset = User.objects.filter(is_staff=False).filter(is_active=False)
+    lookup_field = 'id'

@@ -16,8 +16,10 @@ from rest_framework.exceptions import (
 )
 from .serializers import (
     CartSerializer,
+    CartMiniSerializer,
     CartItemSerializer,
     OrderSerializer,
+    OrderMiniSerializer,
     CartItemUpdateSerializer,
 )
 from .models import (
@@ -33,21 +35,25 @@ class CartViewSet(viewsets.ModelViewSet):
     queryset = Cart.objects.all()
     lookup_field = "user_id"
 
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return CartSerializer
+        return CartMiniSerializer
+    # http_method_names = ['GET', 'POST']
+
 
 class CartItemViewSet(viewsets.ModelViewSet):
     serializer_class = CartItemSerializer
 
     queryset = CartItem.objects.all()
-    # def get_queryset(self):
-    #     user = self.request.user
-    #     queryset = CartItem.objects.filter(cart__user=user)
-    #     return queryset
 
     def create(self, request, *args, **kwargs):
         user = request.user
         cart = get_object_or_404(Cart, user=user)
         product = get_object_or_404(Product, pk=request.data["product"])
         current_item = CartItem.objects.filter(cart=cart, product=product)
+        cart.count += 1
+        cart.save()
 
         if user == product.user:
             raise PermissionDenied("This Is Your Product")
@@ -86,7 +92,7 @@ class CartItemViewSet(viewsets.ModelViewSet):
         try:
             quantity = int(request.data["quantity"])
         except Exception as e:
-            raise ValidationError("Please, input vaild quantity")
+            raise ValidationError("Please, input validd quantity")
 
         if quantity > product.quantity:
             raise NotAcceptable("Your order quantity more than the seller have")
@@ -111,3 +117,19 @@ class CartItemViewSet(viewsets.ModelViewSet):
 class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
     queryset = Order.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        user = request.user
+        cart = get_object_or_404(Cart, user=user)
+
+        order = Order(cart=cart, user=user)
+        order.save()
+        serializer = OrderSerializer(order)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def get_serializer_class(self):
+        if self.action in ('retrieve', 'list'):
+            return OrderSerializer
+        return OrderMiniSerializer
+

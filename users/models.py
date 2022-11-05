@@ -46,11 +46,17 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=255)
     phone = models.CharField(max_length=255, unique=True)
     birth_date = models.DateField(null=True)
+    following = models.ManyToManyField(
+        'self',
+        through='FollowingSystem',
+        related_name='followers',
+        symmetrical=False
+    )
     front_pictures = models.ImageField(blank=True, null=True, upload_to='images/')
     back_pictures = models.ImageField(blank=True, null=True, upload_to='images/')
     face_pictures = models.ImageField(blank=True, null=True, upload_to='images/')
     is_staff = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
@@ -102,3 +108,16 @@ class Address(models.Model):
 class Map(models.Model):
     longitude = models.IntegerField(default=1)
     latitude = models.IntegerField(default=1)
+
+
+class FollowingSystem(models.Model):
+    user_from = models.ForeignKey(User, related_name='rel_from_set', on_delete=models.CASCADE)
+    user_to = models.ForeignKey(User, related_name='rel_to_set', on_delete=models.CASCADE)
+    created = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ('-created'),
+        # unique_together = (('to_user', 'from_user'),)
+
+    def __str__(self):
+        return f'@{self.user_from.username} follows {self.user_to.username}'

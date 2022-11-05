@@ -3,6 +3,7 @@ from .models import (
     User,
     Address,
     Map,
+    FollowingSystem,
 )
 from datetime import date
 
@@ -52,7 +53,7 @@ class RegisterUserSerializer(serializers.ModelSerializer):
             "front_pictures",
             "back_pictures",
             "face_pictures",
-            'message',
+            "message",
         )
 
     def get_message(self, obj):
@@ -95,6 +96,51 @@ class LoginSerializer(serializers.ModelSerializer):
 
 class UserListSerializer(serializers.ModelSerializer):
     age = serializers.SerializerMethodField()
+    follower_count = serializers.SerializerMethodField()
+    following_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'first_name',
+            'last_name',
+            'birth_date',
+            'age',
+            'front_pictures',
+            'back_pictures',
+            'face_pictures',
+            'email',
+            'following',
+            'followers',
+            'follower_count',
+            'following_count',
+            'phone',
+            'is_active',
+            'is_staff',
+            'is_superuser',
+            'is_verified',
+            'date_joined',
+              ]
+
+    def get_age(self, obj):
+        today = date.today()
+        if obj.birth_date is None:
+            return None
+        return today.year - obj.birth_date.year - (
+                (today.month, today.day) < (obj.birth_date.month, obj.birth_date.day))
+
+    def get_follower_count(self, obj):
+        count = obj.followers.count()
+        return count
+
+    def get_following_count(self, obj):
+        count = obj.following.count()
+        return count
+
+
+class UserMiniSerializer(serializers.ModelSerializer):
+    age = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -105,9 +151,6 @@ class UserListSerializer(serializers.ModelSerializer):
             'birth_date',
             'age',
             'is_active',
-            'front_pictures',
-            'back_pictures',
-            'face_pictures',
             'email',
             'phone',
             'is_staff',
@@ -147,4 +190,42 @@ class MapSerializer(serializers.ModelSerializer):
         fields = [
             'longitude',
             'latitude',
+        ]
+
+
+class UserContactSerializer(serializers.ModelSerializer):
+    action = serializers.CharField()
+
+    class Meta:
+        model = FollowingSystem
+        fields = [
+            'user_to',
+            'action',
+        ]
+
+
+class UserFollowingSerializer(serializers.ModelSerializer):
+    following = UserListSerializer(many=True, read_only=True)
+    followers = UserListSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = User
+        fields = [
+            'following',
+            'followers',
+        ]
+
+
+class ApproveUserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'first_name',
+            'email',
+            'front_pictures',
+            'back_pictures',
+            'face_pictures',
+            'is_active',
         ]
