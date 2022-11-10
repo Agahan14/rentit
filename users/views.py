@@ -1,6 +1,7 @@
 import jwt, random, string
 from django.urls import reverse
 from django.core.mail import send_mail
+from rest_auth.registration.serializers import SocialLoginSerializer
 from rest_framework.generics import get_object_or_404
 
 from rentit import settings
@@ -56,13 +57,24 @@ from products.models import Product
 
 class FacebookLogin(SocialLoginView):
     adapter_class = FacebookOAuth2Adapter
+    client_class = OAuth2Client
+    serializer_class = SocialLoginSerializer
+
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        kwargs['context'] = self.get_serializer_context()
+        return serializer_class(*args, **kwargs)
 
 
 class GoogleLogin(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
-    # client_class = OAuth2Client
-    # callback_url = "https://www.google.com"
+    client_class = OAuth2Client
+    serializer_class = SocialLoginSerializer
 
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        kwargs['context'] = self.get_serializer_context()
+        return serializer_class(*args, **kwargs)
 
 class RegisterView(generics.GenericAPIView):
     serializer_class = RegisterUserSerializer
