@@ -239,3 +239,18 @@ CLOUDINARY_STORAGE = {
 TWILIO_ACCOUNT_SID = "ACbaed99a5ff0ae25a71bc4698ac44bebd"
 TWILIO_AUTH_TOKEN = "121d2d48369669f150c70792c7c44773"
 TWILIO_PHONE_NUMBER = "+18317447330"
+
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "APP": {
+            "client_id": "699520499255-4vfqg7m5j7cj88tooik2hhn0jbn844hk.apps.googleusercontent.com",
+            "secret": "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",
+        },
+    },
+    'facebook': {
+        "APP": {
+            "client_id": "605440604668383",
+            "secret": "243e5ed39cf99040970031fec6950739",
+        },
+    },
+}
