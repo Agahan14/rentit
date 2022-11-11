@@ -22,7 +22,7 @@ from .views import (
     ApproveUserViewSet,
     FacebookLogin,
     GoogleLogin,
-    ChangePasswordView,
+    ChangePasswordView, RegisterPhone,
 )
 
 
@@ -40,6 +40,7 @@ users_router.register(r'map', MapViewSet,  basename='map')
 
 urlpatterns = [
     path("register/", RegisterView.as_view()),
+    path("register-phone/", RegisterPhone.as_view()),
     path("login/", LoginView.as_view()),
     path("refresh/", TokenRefreshView.as_view()),
     path("obtain/", TokenObtainPairView.as_view()),

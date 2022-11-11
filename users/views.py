@@ -1,10 +1,14 @@
-import jwt, random, string
-from django.urls import reverse
+import jwt
+import random
+import string
+from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from django.core.mail import send_mail
+from django.urls import reverse
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_auth.registration.serializers import SocialLoginSerializer
-from rest_framework.generics import get_object_or_404
-
-from rentit import settings
+from rest_auth.registration.views import SocialLoginView
 from rest_framework import (
     generics,
     status,
@@ -16,17 +20,14 @@ from rest_framework.exceptions import (
     AuthenticationFailed,
     NotAcceptable,
 )
-from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from twilio.rest import Client
-from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
-from allauth.socialaccount.providers.oauth2.client import OAuth2Client
-from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
-from rest_auth.registration.views import SocialLoginView
-from .utils import Util
+
+from rentit import settings
 from .models import (
     User,
     Address,
@@ -48,11 +49,7 @@ from .serializers import (
     ApproveUserSerializer,
     ChangePasswordSerializer,
 )
-from .permissions import (
-    IsClient,
-    IsSuperUser,
-)
-from products.models import Product
+from .utils import Util
 
 
 class FacebookLogin(SocialLoginView):
@@ -75,6 +72,7 @@ class GoogleLogin(SocialLoginView):
         serializer_class = self.get_serializer_class()
         kwargs['context'] = self.get_serializer_context()
         return serializer_class(*args, **kwargs)
+
 
 class RegisterView(generics.GenericAPIView):
     serializer_class = RegisterUserSerializer
@@ -101,6 +99,33 @@ class RegisterView(generics.GenericAPIView):
 
             Util.send_email(data)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class RegisterPhone(generics.GenericAPIView):
+    serializer_class = RegisterUserSerializer
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        serializer = RegisterUserSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+
+            user_data = serializer.data
+
+            user = User.objects.get(email=user_data["email"])
+            user.is_verified = True
+            refresh_token = RefreshToken.for_user(user)
+            data = {
+                "id": user.id,
+                "first_name": str(user.first_name),
+                "email": str(user.email),
+                "refresh_token": str(refresh_token),
+                "access_token": str(refresh_token.access_token),
+            }
+
+            return Response(data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -161,6 +186,7 @@ class LoginView(generics.GenericAPIView):
 class ForgotPasswordByPhoneAPIView(APIView):
     def post(self, request):
         phone = request.data['phone']
+        print(request.data['phone'])
         try:
             user = User.objects.get(phone=phone)
         except User.DoesNotExist:
@@ -176,7 +202,7 @@ class ForgotPasswordByPhoneAPIView(APIView):
         message = client.messages.create(
             body='Your verification PIN is: ' + token,
             from_="+18317447330",
-            to=request.data['phone'],
+            to=phone,
         )
 
         print(message.sid)
@@ -246,13 +272,12 @@ class ResetPasswordByPhoneAPIView(APIView):
 
         user_id = user.pk
         return Response({
-                'message': 'success',
-                'user': user_id
-            })
+            'message': 'success',
+            'user': user_id
+        })
 
 
 class ChangePasswordView(generics.UpdateAPIView):
-
     queryset = User.objects.all()
     serializer_class = ChangePasswordSerializer
 
@@ -274,7 +299,7 @@ class UserViewSet(viewsets.ModelViewSet):
         filters.OrderingFilter,
     )
     filterset_fields = ('birth_date', 'first_name', 'email', 'phone')
-    search_fields = ['email', 'phone', 'first_name', 'last_name',]
+    search_fields = ['email', 'phone', 'first_name', 'last_name', ]
 
 
 class SupportViewSet(viewsets.ModelViewSet):
