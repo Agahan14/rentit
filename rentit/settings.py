@@ -196,6 +196,9 @@ REST_FRAMEWORK = {
     'TIME_FORMAT': '%H:%M',
 }
 
+REST_USE_JWT = True
+JWT_AUTH_COOKIE = 'access-token'
+JWT_AUTH_REFRESH_COOKIE = 'refresh-token'
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
