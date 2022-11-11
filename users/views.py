@@ -242,7 +242,7 @@ class ResetPasswordAPIView(APIView):
 
         passwordReset = PasswordReset.objects.filter(token=data['token']).first()
 
-        if data['token'] != int(passwordReset.token):
+        if data['token'] != passwordReset.token:
             raise exceptions.APIException('Code is incorrect!')
 
         user = User.objects.filter(email=passwordReset.email).first()
@@ -253,7 +253,7 @@ class ResetPasswordAPIView(APIView):
         user_id = user.pk
         return Response({
             'message': 'success',
-            'user': user_id
+            'user': str(user_id)
         })
 
 
