@@ -116,6 +116,7 @@ class RegisterPhone(generics.GenericAPIView):
 
             user = User.objects.get(email=user_data["email"])
             user.is_verified = True
+            user.save()
             refresh_token = RefreshToken.for_user(user)
             data = {
                 "id": user.id,
