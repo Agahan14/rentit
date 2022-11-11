@@ -1,6 +1,7 @@
 import jwt, random, string
 from django.urls import reverse
 from django.core.mail import send_mail
+from rest_auth.registration.serializers import SocialLoginSerializer
 from rest_framework.generics import get_object_or_404
 
 from rentit import settings
@@ -21,6 +22,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from twilio.rest import Client
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
+from rest_auth.registration.views import SocialLoginView
 from .utils import Util
 from .models import (
     User,
@@ -38,29 +43,38 @@ from .serializers import (
     UserMiniSerializer,
     AddressSerializer,
     MapSerializer,
-    CustomUserSerializer,
     UserContactSerializer,
     UserFollowingSerializer,
     ApproveUserSerializer,
+    ChangePasswordSerializer,
 )
 from .permissions import (
     IsClient,
     IsSuperUser,
 )
+from products.models import Product
 
 
-class CustomUserCreate(APIView):
-    permission_classes = [AllowAny]
+class FacebookLogin(SocialLoginView):
+    adapter_class = FacebookOAuth2Adapter
+    client_class = OAuth2Client
+    serializer_class = SocialLoginSerializer
 
-    def post(self, request, format='json'):
-        serializer = CustomUserSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.save()
-            if user:
-                json = serializer.data
-                return Response(json, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        kwargs['context'] = self.get_serializer_context()
+        return serializer_class(*args, **kwargs)
 
+
+class GoogleLogin(SocialLoginView):
+    adapter_class = GoogleOAuth2Adapter
+    client_class = OAuth2Client
+    serializer_class = SocialLoginSerializer
+
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        kwargs['context'] = self.get_serializer_context()
+        return serializer_class(*args, **kwargs)
 
 class RegisterView(generics.GenericAPIView):
     serializer_class = RegisterUserSerializer
@@ -74,8 +88,6 @@ class RegisterView(generics.GenericAPIView):
             user_data = serializer.data
 
             user = User.objects.get(email=user_data["email"])
-            # user.is_active = False
-            # user.save()
             token = RefreshToken.for_user(user)
             current_site = request.get_host()
             link = reverse("email_verify")
@@ -157,13 +169,13 @@ class ForgotPasswordByPhoneAPIView(APIView):
 
         PasswordResetByPhone.objects.create(phone=phone, token=token)
 
-        account_sid = "ACdeb64be8247471d24bf58c28e45b89ac"
-        auth_token = "a857b4819bc02678ef1693c63bf9307b"
+        account_sid = "ACbaed99a5ff0ae25a71bc4698ac44bebd"
+        auth_token = "121d2d48369669f150c70792c7c44773"
         client = Client(account_sid, auth_token)
 
         message = client.messages.create(
             body='Your verification PIN is: ' + token,
-            from_="+16802195991",
+            from_="+18317447330",
             to=request.data['phone'],
         )
 
@@ -201,50 +213,48 @@ class ResetPasswordAPIView(APIView):
     def post(self, request):
         data = request.data
 
-        if data['password'] != data['password_confirm']:
-            raise exceptions.APIException('Password do not match')
-
         passwordReset = PasswordReset.objects.filter(token=data['token']).first()
+
+        if data['token'] != int(passwordReset.token):
+            raise exceptions.APIException('Code is incorrect!')
 
         user = User.objects.filter(email=passwordReset.email).first()
 
         if not user:
             raise exceptions.NotFound('User not found!')
 
-        # PasswordReset.objects.update(token="agahasndasd")
-
-        user.set_password(data['password'])
-        # passwordReset.save()
-
-        user.save()
-
+        user_id = user.pk
         return Response({
-                'message': 'success'
-            })
+            'message': 'success',
+            'user': user_id
+        })
 
 
 class ResetPasswordByPhoneAPIView(APIView):
     def post(self, request):
         data = request.data
 
-        if data['password'] != data['password_confirm']:
-            raise exceptions.APIException('Password do not match')
-
         passwordResetByPhone = PasswordResetByPhone.objects.filter(token=data['token']).first()
+
+        if data['token'] != int(passwordResetByPhone.token):
+            raise exceptions.APIException('Code is incorrect!')
 
         user = User.objects.filter(phone=passwordResetByPhone.phone).first()
 
         if not user:
             raise exceptions.NotFound('User not found!')
 
-
-        user.set_password(data['password'])
-
-        user.save()
-
+        user_id = user.pk
         return Response({
-                'message': 'success'
+                'message': 'success',
+                'user': user_id
             })
+
+
+class ChangePasswordView(generics.UpdateAPIView):
+
+    queryset = User.objects.all()
+    serializer_class = ChangePasswordSerializer
 
 
 class ClientViewSet(viewsets.ModelViewSet):

@@ -44,7 +44,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True, null=True)
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
-    phone = models.CharField(max_length=255, unique=True)
+    phone = models.CharField(max_length=255, unique=True, null=True)
     birth_date = models.DateField(null=True)
     following = models.ManyToManyField(
         'self',

@@ -5,29 +5,30 @@ from .models import (
     Map,
     FollowingSystem,
 )
+from products.models import Product
 from datetime import date
 
+class ChangePasswordSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=True)
+    password2 = serializers.CharField(write_only=True, required=True)
 
-class CustomUserSerializer(serializers.ModelSerializer):
-    """
-    Currently unused in preference of the below.
-    """
-    email = serializers.EmailField(required=True)
-    username = serializers.CharField(required=True)
-    password = serializers.CharField(min_length=8, write_only=True)
 
     class Meta:
         model = User
-        fields = ('email', 'username', 'password')
-        extra_kwargs = {'password': {'write_only': True}}
+        fields = ('password', 'password2')
 
-    def create(self, validated_data):
-        password = validated_data.pop('password', None)
-        # as long as the fields are the same, we can just use this
-        instance = self.Meta.model(**validated_data)
-        if password is not None:
-            instance.set_password(password)
+    def validate(self, attrs):
+        if attrs['password'] != attrs['password2']:
+            raise serializers.ValidationError({"password": "Password fields didn't match."})
+
+        return attrs
+
+
+    def update(self, instance, validated_data):
+
+        instance.set_password(validated_data['password'])
         instance.save()
+
         return instance
 
 
@@ -38,21 +39,15 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         required=True,
         style={'input_type': 'password', 'placeholder': 'Password'}
     )
-    birth_date = serializers.DateField(required=True)
     message = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = (
             "first_name",
-            "last_name",
-            "birth_date",
             "email",
-            "phone",
+            # "phone",
             "password",
-            "front_pictures",
-            "back_pictures",
-            "face_pictures",
             "message",
         )
 
@@ -61,14 +56,14 @@ class RegisterUserSerializer(serializers.ModelSerializer):
             "Verification message has been sent to your email, please verify your email"
         )
 
-    def validate_phone(self, value):
-        if not value[1:].isnumeric():
-            raise serializers.ValidationError('Phone must be numeric symbols')
-        if value[:4] != '+996':
-            raise serializers.ValidationError('Phone number should start with +996 ')
-        elif len(value) != 13:
-            raise serializers.ValidationError("Phone number must be 13 characters long")
-        return value
+    # def validate_phone(self, value):
+    #     if not value[1:].isnumeric():
+    #         raise serializers.ValidationError('Phone must be numeric symbols')
+    #     if value[:4] != '+996':
+    #         raise serializers.ValidationError('Phone number should start with +996 ')
+    #     elif len(value) != 13:
+    #         raise serializers.ValidationError("Phone number must be 13 characters long")
+    #     return value
 
     def create(self, validated_data):
         return User.objects.create_user(**validated_data)
@@ -131,12 +126,13 @@ class UserListSerializer(serializers.ModelSerializer):
                 (today.month, today.day) < (obj.birth_date.month, obj.birth_date.day))
 
     def get_follower_count(self, obj):
-        count = obj.followers.count()
-        return count
+
+        return obj.followers.count()
+
 
     def get_following_count(self, obj):
-        count = obj.following.count()
-        return count
+
+        return obj.following.count()
 
 
 class UserMiniSerializer(serializers.ModelSerializer):

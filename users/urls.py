@@ -18,9 +18,11 @@ from .views import (
     ResetPasswordAPIView,
     ForgotPasswordByPhoneAPIView,
     ForgotPasswordAPIView,
-    CustomUserCreate,
     UserContactViewSet,
     ApproveUserViewSet,
+    FacebookLogin,
+    GoogleLogin,
+    ChangePasswordView,
 )
 
 
@@ -32,12 +34,11 @@ users_router.register(r'admins', AdminViewSet, basename='admins')
 users_router.register(r'all-users', UserViewSet, basename='all-users')
 users_router.register(r'followers', UserContactViewSet, basename='followers')
 users_router.register(r'approve-user', ApproveUserViewSet, basename='approve-user')
-users_router.register(r'address', AddressViewSet)
-users_router.register(r'map', MapViewSet)
+users_router.register(r'address', AddressViewSet,  basename='address')
+users_router.register(r'map', MapViewSet,  basename='map')
 
 
 urlpatterns = [
-    path('create/', CustomUserCreate.as_view(), name="create_user"),
     path("register/", RegisterView.as_view()),
     path("login/", LoginView.as_view()),
     path("refresh/", TokenRefreshView.as_view()),
@@ -47,4 +48,7 @@ urlpatterns = [
     path('reset/', ResetPasswordAPIView.as_view(), name='reset-password'),
     path('forgot-phone/', ForgotPasswordByPhoneAPIView.as_view(), name='forgot-password-by-phone'),
     path('reset-phone/', ResetPasswordByPhoneAPIView.as_view(), name='reset-password-by-phone'),
+    path('facebook', FacebookLogin.as_view(), name='facebook'),
+    path('google', GoogleLogin.as_view(),  name='google'),
+    path("change-password/<int:pk>/", ChangePasswordView.as_view(), name="change-password"),
 ]
