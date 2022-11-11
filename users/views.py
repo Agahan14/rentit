@@ -7,8 +7,8 @@ from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from django.core.mail import send_mail
 from django.urls import reverse
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_auth.registration.serializers import SocialLoginSerializer
-from rest_auth.registration.views import SocialLoginView
+from dj_rest_auth.registration.serializers import SocialLoginSerializer
+from dj_rest_auth.registration.views import SocialLoginView
 from rest_framework import (
     generics,
     status,
