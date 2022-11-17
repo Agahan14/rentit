@@ -14,6 +14,7 @@ class SuperUser(BaseUserManager):
         other_fields.setdefault("is_superuser", True)
         other_fields.setdefault("is_active", True)
         other_fields.setdefault("is_verified", True)
+        other_fields.setdefault("user_type", 'admin')
 
         if other_fields.get("is_staff") is not True:
             raise ValueError("Superuser must be assigned to is_staff=True")
@@ -23,6 +24,8 @@ class SuperUser(BaseUserManager):
             raise ValueError("Superuser must be assigned to is_active=True")
         if other_fields.get("is_verified") is not True:
             raise ValueError("Superuser must be assigned to is_verified=True")
+        if other_fields.get("user_type") != 'admin':
+            raise ValueError("Superuser must be assigned to user_type=admin")
         return self.create_user(email, password, **other_fields)
 
     def create_user(self, email, password, **other_fields):
@@ -40,10 +43,19 @@ class SuperUser(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
+    user_type_choices = [
+        ('client', 'client'),
+        ('support', 'support'),
+        ('admin', 'admin'),
+    ]
+
     username = models.CharField(max_length=150, unique=True, null=True)
     email = models.EmailField(unique=True, null=True)
+    pictures = models.ImageField(blank=True, null=True, upload_to="images/")
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
+    middle_name = models.CharField(max_length=255)
+    user_type = models.CharField(max_length=255, null=True, default='client')
     phone = models.CharField(max_length=255, unique=True, null=True)
     birth_date = models.DateField(null=True)
     following = models.ManyToManyField(
@@ -55,6 +67,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     front_pictures = models.ImageField(blank=True, null=True, upload_to='images/')
     back_pictures = models.ImageField(blank=True, null=True, upload_to='images/')
     face_pictures = models.ImageField(blank=True, null=True, upload_to='images/')
+    passport_series = models.CharField(max_length=255, null=True, unique=True)
+    passport_issues_date = models.DateField(auto_now_add=False, null=True, blank=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
