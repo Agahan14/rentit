@@ -47,6 +47,8 @@ from .serializers import (
     UserContactSerializer,
     UserFollowingSerializer,
     ApproveUserSerializer,
+    ResetPasswordSerializer,
+    UserProfileSerializer,
     ChangePasswordSerializer,
 )
 from .utils import Util
@@ -177,7 +179,12 @@ class LoginView(generics.GenericAPIView):
 
         return Response(
             {
-                "status": "You successfully logged in",
+                'first_name': user.first_name,
+                'email': user.email,
+                'user_type': user.user_type,
+                'followers': str(user.followers.count()),
+                'followings': str(user.following.count()),
+                'user_id': user.id,
                 "refresh": str(refresh),
                 "access": str(refresh.access_token),
             }
@@ -278,8 +285,15 @@ class ResetPasswordByPhoneAPIView(APIView):
         })
 
 
-class ChangePasswordView(generics.UpdateAPIView):
+class ResetPasswordView(generics.UpdateAPIView):
     queryset = User.objects.all()
+    serializer_class = ChangePasswordSerializer
+
+
+class ChangePasswordView(generics.UpdateAPIView):
+
+    queryset = User.objects.all()
+    # permission_classes = (IsAuthenticated,)
     serializer_class = ChangePasswordSerializer
 
 
@@ -288,6 +302,22 @@ class ClientViewSet(viewsets.ModelViewSet):
     serializer_class = UserListSerializer
     http_method_names = ['get', 'put', 'patch', 'delete']
     # permission_classes = (IsSuperUser,)
+
+
+class UserProfileViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserProfileSerializer
+
+    # def get_queryset(self):
+    #     return User.objects.filter(id=self.request.user.id)
+    # http_method_names = ['get', 'put', 'patch']
+    # permission_classes = (IsSuperUser,)
+
+
+class CurrentUserView(APIView):
+    def get(self, request):
+        serializer = UserProfileSerializer(request.user)
+        return Response(serializer.data)
 
 
 class UserViewSet(viewsets.ModelViewSet):
