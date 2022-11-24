@@ -1,8 +1,5 @@
 from django.db import models
-
 from django.conf import settings
-
-rates = ((1, 1), (2, 2), (3, 3), (4, 4), (5, 5))
 
 
 class Pictures(models.Model):
@@ -10,12 +7,6 @@ class Pictures(models.Model):
     image = models.ImageField(upload_to="images/")
     product = models.ForeignKey(
         "Product",
-        on_delete=models.CASCADE,
-        blank=True,
-        null=True,
-    )
-    banner = models.ForeignKey(
-        "Banner",
         on_delete=models.CASCADE,
         blank=True,
         null=True,
@@ -28,6 +19,8 @@ class Pictures(models.Model):
 class Banner(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
+    url = models.CharField(max_length=255)
+    image = models.ImageField(upload_to="images/")
 
     def __str__(self):
         return self.title
@@ -64,8 +57,7 @@ class Product(models.Model):
         null=True,
     )
     price = models.FloatField(blank=True, null=True)
-    is_watched = models.BooleanField(default=False)
-    is_favorite = models.BooleanField(default=False)
+    views = models.IntegerField(default=0)
     created_date = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(
         auto_now_add=False,
@@ -74,7 +66,6 @@ class Product(models.Model):
     )
     quantity = models.IntegerField(default=1)
     days = models.ForeignKey("Date", on_delete=models.CASCADE, null=True)
-    rate = models.PositiveSmallIntegerField(choices=rates, default=1)
     category = models.ForeignKey(
         ProductCategory,
         related_name="category",
@@ -128,3 +119,15 @@ class FAQ(models.Model):
 
     def __str__(self):
         return f'{self.question}'
+
+
+class Rating(models.Model):
+    rates = ((1, 1), (2, 2), (3, 3), (4, 4), (5, 5))
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True)
+    rating = models.PositiveSmallIntegerField(choices=rates, default=1)
+
+
+class WishList(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True)
