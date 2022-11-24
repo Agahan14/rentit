@@ -24,7 +24,6 @@ class PicturesSerializer(serializers.ModelSerializer):
             'name',
             'image',
             'product',
-            'banner',
 
         ]
 

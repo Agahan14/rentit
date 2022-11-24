@@ -178,7 +178,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 
 class UserMiniSerializer(serializers.ModelSerializer):
-    saparmurat = serializers.SerializerMethodField()
+    age = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -198,7 +198,7 @@ class UserMiniSerializer(serializers.ModelSerializer):
               ]
         read_only_fields = ['is_active']
 
-    def get_saparmurat(self, obj):
+    def get_age(self, obj):
         today = date.today()
         if obj.birth_date is None:
             return None

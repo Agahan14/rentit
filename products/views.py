@@ -141,6 +141,8 @@ class FollowingViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
 
     def get_queryset(self):
+        if self.request.user.is_anonymous:
+            return Product.objects.all()
         following = self.request.user.following.all()
 
         return Product.objects.filter(user__in=following).order_by('created_date')
