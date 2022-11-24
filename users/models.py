@@ -55,7 +55,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
     middle_name = models.CharField(max_length=255)
-    user_type = models.CharField(max_length=255, null=True, default='client')
+    user_type = models.CharField(max_length=255, choices=user_type_choices,null=True, default='client')
     phone = models.CharField(max_length=255, unique=True, null=True)
     birth_date = models.DateField(null=True)
     following = models.ManyToManyField(
@@ -69,10 +69,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     face_pictures = models.ImageField(blank=True, null=True, upload_to='images/')
     passport_series = models.CharField(max_length=255, null=True, unique=True)
     passport_issues_date = models.DateField(auto_now_add=False, null=True, blank=True)
+    is_archive = models.BooleanField(default=False)
+    is_business = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)
+    is_social = models.BooleanField(default=True)
     date_joined = models.DateTimeField(default=timezone.now)
 
     USERNAME_FIELD = "email"

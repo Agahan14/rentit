@@ -6,7 +6,10 @@ from .models import (
     Map,
     FollowingSystem,
 )
-from products.models import Product
+from products.models import (
+    Product,
+    Rating,
+)
 from datetime import date
 
 
@@ -95,6 +98,7 @@ class UserListSerializer(serializers.ModelSerializer):
     age = serializers.SerializerMethodField()
     follower_count = serializers.SerializerMethodField()
     following_count = serializers.SerializerMethodField()
+    rate = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -113,6 +117,9 @@ class UserListSerializer(serializers.ModelSerializer):
             'follower_count',
             'following_count',
             'phone',
+            'rate',
+            'user_type',
+            'is_business',
             'is_active',
             'is_staff',
             'is_superuser',
@@ -136,6 +143,19 @@ class UserListSerializer(serializers.ModelSerializer):
 
         return obj.following.count()
 
+        # total_rating =
+    def get_rate(self, obj):
+        user_id = obj.id
+        ratings = Rating.objects.filter(product__user=user_id)
+        total_rating = 0
+        count = 0
+        for i in ratings:
+            total_rating += i.rating
+            count += 1
+        if total_rating != 0:
+            return round(total_rating / count, 1)
+        return total_rating
+
 
 class UserProfileSerializer(serializers.ModelSerializer):
 
@@ -158,7 +178,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 
 class UserMiniSerializer(serializers.ModelSerializer):
-    age = serializers.SerializerMethodField()
+    saparmurat = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -173,11 +193,12 @@ class UserMiniSerializer(serializers.ModelSerializer):
             'phone',
             'is_staff',
             'is_superuser',
+            'is_archive',
             'date_joined',
               ]
         read_only_fields = ['is_active']
 
-    def get_age(self, obj):
+    def get_saparmurat(self, obj):
         today = date.today()
         if obj.birth_date is None:
             return None
@@ -276,3 +297,15 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
+
+
+class ArchiveUserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'first_name',
+            'email',
+            'is_archive',
+        ]
