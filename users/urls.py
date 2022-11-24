@@ -27,6 +27,8 @@ from .views import (
     UserProfileViewSet,
     CurrentUserView,
     ChangePasswordView,
+    ArchiveUserViewSet,
+    ArchiveListUserViewSet,
 )
 
 
@@ -40,6 +42,8 @@ users_router.register(r'approve-user', ApproveUserViewSet, basename='approve-use
 users_router.register(r'address', AddressViewSet,  basename='address')
 users_router.register(r'map', MapViewSet,  basename='map')
 users_router.register(r'users-profile', UserProfileViewSet, basename='users-profile')
+users_router.register(r'archive-user', ArchiveUserViewSet, basename='archive-users')
+users_router.register(r'archive-list', ArchiveListUserViewSet, basename='archive-list')
 
 
 urlpatterns = [
