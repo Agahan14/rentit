@@ -1,19 +1,14 @@
 from rest_framework import serializers
-from collections import Counter
+
 from .models import (
     Product,
     ProductCategory,
     Pictures,
     Banner,
-    Date,
-    Detail,
-    DetailCategory,
     Comment,
     FAQ,
-    Rating,
-    WishList,
+    Rating, ProductSubCategory, Brand,
 )
-from users.models import User
 
 
 class PicturesSerializer(serializers.ModelSerializer):
@@ -21,9 +16,7 @@ class PicturesSerializer(serializers.ModelSerializer):
         model = Pictures
         fields = [
             'id',
-            'name',
             'image',
-            'product',
         ]
 
 
@@ -36,25 +29,6 @@ class BannerSerializer(serializers.ModelSerializer):
             'description',
             'url',
             'image',
-        ]
-
-
-class DetailSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Detail
-        fields = [
-            'id',
-            'name',
-        ]
-
-
-class DetailCategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = DetailCategory
-        fields = [
-            'id',
-            'title',
-            'detail',
         ]
 
 
@@ -77,12 +51,23 @@ class ProductCategorySerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'name',
-            'sub_category',
-            'detail_category',
+        ]
+
+
+class ProductSubCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductSubCategory
+        fields = [
+            'id',
+            'product_category',
+            'characteristic'
         ]
 
 
 class ProductSerializer(serializers.ModelSerializer):
+    likes = serializers.SerializerMethodField()
+    pictures = PicturesSerializer(many=True)
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
     class Meta:
         model = Product
@@ -90,26 +75,43 @@ class ProductSerializer(serializers.ModelSerializer):
             'id',
             'name',
             'description',
-            'detail',
             'price',
-            'quantity',
             'views',
             'created_date',
             'updated_date',
-            'days',
-            'category',
+            'sub_category',
             'user',
             'is_hot',
             'is_active',
+            'characteristic',
+            'likes',
+            'pictures',
+            'brand',
         ]
+        read_only_fields = ('views', 'created_date', 'updated_date')
 
     def create(self, validated_data):
-        user = validated_data.get('user')
-        if Product.objects.filter(user=user).count() >= 10 and user.is_business == False:
-            raise serializers.ValidationError('Sorry, but only business user can create more than 5 products.')
-        elif Product.objects.filter(user=user).count() >= 50 and user.is_business:
+        pictures = validated_data.pop('pictures')
+        product = Product.objects.create(**validated_data)
+        for picture in pictures:
+            Pictures.objects.create(**picture, product=product)
+        return product
+
+    def get_likes(self, obj):
+        return obj.likes_count()
+
+    def validate_user(self, user):
+        count = Product.objects.filter(user=user).count()
+        if count >= 15 and user.is_business is False:
+            raise serializers.ValidationError('Sorry, but only business user can create more than 10 products.')
+        elif count >= 50 and user.is_business:
             raise serializers.ValidationError('Sorry, but you can create only 50 products')
-        return Product.objects.create(**validated_data)
+        return user
+
+    def validate_pictures(self, pictures):
+        if len(pictures) > 10:
+            raise serializers.ValidationError('Sorry, but only business user can create more than 10 products.')
+        return pictures
 
 
 class ProductDetailSerializer(serializers.ModelSerializer):
@@ -146,16 +148,6 @@ class ProductDetailSerializer(serializers.ModelSerializer):
         return total_rating
 
 
-class DateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Date
-        fields = [
-            'id',
-            'start_date',
-            'end_date',
-        ]
-
-
 class FAQSerializer(serializers.ModelSerializer):
     class Meta:
         model = FAQ
@@ -167,7 +159,6 @@ class FAQSerializer(serializers.ModelSerializer):
 
 
 class RatingSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Rating
         fields = [
@@ -178,14 +169,7 @@ class RatingSerializer(serializers.ModelSerializer):
         ]
 
 
-class WishListSerializer(serializers.ModelSerializer):
-    product = ProductSerializer(read_only=True)
-
+class BrandSerializer(serializers.ModelSerializer):
     class Meta:
-        model = WishList
-        fields = [
-            'id',
-            'user',
-            'product',
-        ]
-
+        model = Brand
+        fields = ['name', 'sub_category']

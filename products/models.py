@@ -1,19 +1,17 @@
-from django.db import models
 from django.conf import settings
+from django.contrib.postgres.fields import ArrayField
+from django.db import models
 
 
 class Pictures(models.Model):
-    name = models.CharField(max_length=255)
-    image = models.ImageField(upload_to="images/")
+    image = models.ImageField(upload_to="images/", null=True, blank=True)
     product = models.ForeignKey(
         "Product",
         on_delete=models.CASCADE,
         blank=True,
         null=True,
+        related_name='pictures',
     )
-
-    def __str__(self):
-        return self.name
 
 
 class Banner(models.Model):
@@ -28,80 +26,60 @@ class Banner(models.Model):
 
 class ProductCategory(models.Model):
     name = models.CharField(max_length=255, blank=True)
-    sub_category = models.ForeignKey(
-        "self",
-        on_delete=models.CASCADE,
-        blank=True,
-        null=True
-    )
-    detail_category = models.ForeignKey(
-        "DetailCategory",
-        on_delete=models.CASCADE,
-        blank=True,
-        null=True,
-        related_name='detail_category'
-    )
 
     def __str__(self):
         return self.name
 
 
+class ProductSubCategory(models.Model):
+    name = models.CharField('Название подкатегории', max_length=256)
+    product_category = models.ForeignKey(ProductCategory, on_delete=models.CASCADE, verbose_name='Категория продукта')
+    characteristic = ArrayField(models.CharField(max_length=256, blank=True, null=True), blank=True, null=True,
+                                verbose_name='Шаблон для характеристик')
+
+    class Meta:
+        verbose_name = 'Подкатегория'
+        verbose_name_plural = 'Подкатегории'
+
+    def __str__(self):
+        return self.name
+
+
+class Brand(models.Model):
+    name = models.CharField(verbose_name="Название производителя", max_length=256)
+    sub_category = models.ManyToManyField(ProductSubCategory, blank=True)
+
+
 class Product(models.Model):
-    name = models.CharField(verbose_name="name", max_length=100)
+    name = models.CharField(verbose_name="name", max_length=256)
     description = models.TextField(blank=True)
-    detail = models.ForeignKey(
-        "Detail",
-        on_delete=models.CASCADE,
-        related_name="information",
-        blank=True,
-        null=True,
-    )
+    brand = models.ForeignKey(Brand, blank=True, null=True, on_delete=models.CASCADE)
     price = models.FloatField(blank=True, null=True)
     views = models.IntegerField(default=0)
     created_date = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(
-        auto_now_add=False,
+        auto_now=True,
         blank=True,
         null=True,
     )
-    quantity = models.IntegerField(default=1)
-    days = models.ForeignKey("Date", on_delete=models.CASCADE, null=True)
-    category = models.ForeignKey(
-        ProductCategory,
-        related_name="category",
+    sub_category = models.ForeignKey(
+        ProductSubCategory,
+        related_name='product',
         on_delete=models.CASCADE,
         null=True,
     )
     user = models.ForeignKey(settings.AUTH_USER_MODEL,
-                             on_delete=models.CASCADE, null=True, related_name="product")
+                             on_delete=models.CASCADE, null=True, related_name='product')
     is_hot = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
+    characteristic = models.JSONField('Характеристики продукта')
+    like = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='product_like', blank=True)
+
+    def likes_count(self):
+        return self.like.count()
 
     def __str__(self):
         return self.name
-
-
-class Date(models.Model):
-    start_date = models.DateField(auto_now_add=False)
-    end_date = models.DateField(auto_now_add=False)
-
-    def __str__(self):
-        return f"{self.start_date} - {self.end_date}"
-
-
-class Detail(models.Model):
-    name = models.CharField(max_length=255)
-
-    def __str__(self):
-        return self.name
-
-
-class DetailCategory(models.Model):
-    title = models.CharField(max_length=255)
-    detail = models.ManyToManyField(Detail, blank=True)
-
-    def __str__(self):
-        return self.title
 
 
 class Comment(models.Model):
@@ -130,6 +108,4 @@ class Rating(models.Model):
     rating = models.PositiveSmallIntegerField(choices=rates, default=1)
 
 
-class WishList(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True)
+

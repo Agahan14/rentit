@@ -17,6 +17,7 @@ from django.contrib import admin
 from django.urls import path, include
 from products.urls import products_router
 from orders.urls import orders_router
+from products.views import ProductLikeView
 from users.urls import users_router
 from patches import routers
 from .yasg import urlpatterns as doc_url
@@ -35,7 +36,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('users/', include('users.urls')),
     path('products/', include(router.urls)),
-
+    path('product-like/', ProductLikeView.as_view(), name='product-like'),
 ]
 
 urlpatterns += doc_url

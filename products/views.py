@@ -1,44 +1,38 @@
 from django.shortcuts import get_object_or_404
-from rest_framework.exceptions import (
-    NotAcceptable,
-    ValidationError,
-    PermissionDenied,
-)
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.response import Response
 from rest_framework import (
     viewsets,
     status,
-    filters,
+    filters, )
+from rest_framework.exceptions import (
+    ValidationError,
+    PermissionDenied,
+)
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from users.pagination import CustomPagination
+from .models import (
+    Product,
+    ProductCategory,
+    Pictures,
+    Banner,
+    Comment,
+    FAQ,
+    Rating,
+    ProductSubCategory, Brand,
 )
 from .serializers import (
     ProductSerializer,
     ProductCategorySerializer,
     PicturesSerializer,
     BannerSerializer,
-    DateSerializer,
-    DetailSerializer,
-    DetailCategorySerializer,
     CommentSerializer,
     FAQSerializer,
     ProductDetailSerializer,
     RatingSerializer,
-    WishListSerializer,
+    ProductSubCategorySerializer, BrandSerializer,
 )
-from .models import (
-    Product,
-    ProductCategory,
-    Pictures,
-    Banner,
-    Date,
-    Detail,
-    DetailCategory,
-    Comment,
-    FAQ,
-    Rating,
-    WishList,
-)
-from users.pagination import CustomPagination
 
 
 class MyProductViewSet(viewsets.ModelViewSet):
@@ -59,6 +53,8 @@ class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
     queryset = Product.objects.all()
     pagination_class = CustomPagination
+    filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
+    filterset_fields = ['sub_category', 'sub_category__product_category']
 
     def retrieve(self, request, *args, **kwargs):
         obj = self.get_object()
@@ -81,21 +77,6 @@ class PicturesViewSet(viewsets.ModelViewSet):
 class BannerViewSet(viewsets.ModelViewSet):
     serializer_class = BannerSerializer
     queryset = Banner.objects.all()
-
-
-class DateViewSet(viewsets.ModelViewSet):
-    serializer_class = DateSerializer
-    queryset = Date.objects.all()
-
-
-class DetailViewSet(viewsets.ModelViewSet):
-    serializer_class = DetailSerializer
-    queryset = Detail.objects.all()
-
-
-class DetailCategoryViewSet(viewsets.ModelViewSet):
-    serializer_class = DetailCategorySerializer
-    queryset = DetailCategory.objects.all()
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -134,30 +115,6 @@ class RatingViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-class WishListViewSet(viewsets.ModelViewSet):
-    serializer_class = WishListSerializer
-    queryset = WishList.objects.all()
-    # lookup_field = 'user'
-
-    def get_queryset(self):
-        return WishList.objects.filter(user=self.request.user)
-
-    def create(self, request, *args, **kwargs):
-        user = request.user
-        product = get_object_or_404(Product, pk=request.data["product"])
-        if WishList.objects.filter(user=user, product=product).exists():
-            raise ValidationError("You have already added this product!")
-
-        if user == product.user:
-            raise PermissionDenied("This Is Your Product!")
-
-        wishes = WishList(user=user, product=product)
-        wishes.save()
-        serializer = WishListSerializer(wishes)
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-
 class FollowingViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
 
@@ -167,3 +124,32 @@ class FollowingViewSet(viewsets.ModelViewSet):
         following = self.request.user.following.all()
 
         return Product.objects.filter(user__in=following).order_by('created_date')
+
+
+class ProductSubCategoryViewSet(viewsets.ModelViewSet):
+    serializer_class = ProductSubCategorySerializer
+    queryset = ProductSubCategory.objects.all()
+
+
+class ProductLikeView(APIView):
+    def post(self, request, *args, **kwargs):
+        product_id = request.data.get('product', '')
+        if not product_id:
+            return Response({'message': 'Incorrect data'}, status=400)
+        if not self.request.user.is_anonymous:
+            product = get_object_or_404(Product, id=product_id)
+            if product.like.filter(id=self.request.user.id).exists():
+                product.like.remove(request.user)
+                return Response({'message': 'Disliked'}, status=200)
+            else:
+                product.like.add(request.user)
+                return Response({'message': 'Liked'}, status=200)
+        return Response({'message': 'User is not logged'})
+
+
+class BrandViewSet(viewsets.ModelViewSet):
+    model = Brand
+    serializer_class = BrandSerializer
+    queryset = Brand.objects.all()
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('sub_category',)

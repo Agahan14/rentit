@@ -115,8 +115,12 @@ WSGI_APPLICATION = 'rentit.wsgi.application'
 if DEBUG:
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': config('DISTRIBUTOR_DB_NAME', 'distributor'),
+            'USER': config('DISTRIBUTOR_DB_USER', 'postgres'),
+            'PASSWORD': config('DISTRIBUTOR_DB_PASSWORD'),
+            'HOST': config('DISTRIBUTOR_DB_HOST', 'localhost'),
+            'PORT': config('DISTRIBUTOR_DB_PORT', 5432),
         }
     }
 else:

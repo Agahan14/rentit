@@ -1,5 +1,13 @@
+from datetime import date
+
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
+
+from products.models import (
+    Product,
+    Rating,
+)
+from products.serializers import ProductSerializer
 from .models import (
     User,
     Direction,
@@ -9,11 +17,6 @@ from .models import (
     Props,
     GetTariff,
 )
-from products.models import (
-    Product,
-    Rating,
-)
-from datetime import datetime, timedelta, date
 
 
 class ResetPasswordSerializer(serializers.ModelSerializer):
@@ -31,7 +34,6 @@ class ResetPasswordSerializer(serializers.ModelSerializer):
         return attrs
 
     def update(self, instance, validated_data):
-
         instance.set_password(validated_data['password'])
         instance.save()
 
@@ -39,7 +41,6 @@ class ResetPasswordSerializer(serializers.ModelSerializer):
 
 
 class RegisterUserSerializer(serializers.ModelSerializer):
-
     password = serializers.CharField(
         write_only=True,
         required=True,
@@ -126,7 +127,7 @@ class UserListSerializer(serializers.ModelSerializer):
             'is_superuser',
             'is_verified',
             'date_joined',
-              ]
+        ]
 
     def get_age(self, obj):
         today = date.today()
@@ -139,12 +140,12 @@ class UserListSerializer(serializers.ModelSerializer):
 
         return obj.followers.count()
 
-
     def get_following_count(self, obj):
 
         return obj.following.count()
 
         # total_rating =
+
     def get_rate(self, obj):
         user_id = obj.id
         ratings = Rating.objects.filter(product__user=user_id)
@@ -159,6 +160,7 @@ class UserListSerializer(serializers.ModelSerializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    product_like = ProductSerializer(many=True, read_only=True)
 
     class Meta:
         model = User
@@ -175,7 +177,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'face_pictures',
             'email',
             'phone',
-              ]
+            'product_like'
+        ]
 
 
 class UserMiniSerializer(serializers.ModelSerializer):
@@ -196,7 +199,7 @@ class UserMiniSerializer(serializers.ModelSerializer):
             'is_superuser',
             'is_archive',
             'date_joined',
-              ]
+        ]
         read_only_fields = ['is_active']
 
     def get_age(self, obj):
@@ -257,7 +260,6 @@ class UserFollowingSerializer(serializers.ModelSerializer):
 
 
 class ApproveUserSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = User
         fields = [
@@ -301,7 +303,6 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
 
 
 class ArchiveUserSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = User
         fields = [
