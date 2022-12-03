@@ -1,5 +1,5 @@
 from rest_framework import serializers
-
+from collections import Counter
 from .models import (
     Product,
     ProductCategory,
@@ -10,7 +10,10 @@ from .models import (
     DetailCategory,
     Comment,
     FAQ,
+    Rating,
+    WishList,
 )
+from users.models import User
 
 
 class PicturesSerializer(serializers.ModelSerializer):
@@ -21,8 +24,6 @@ class PicturesSerializer(serializers.ModelSerializer):
             'name',
             'image',
             'product',
-            'banner',
-
         ]
 
 
@@ -33,6 +34,8 @@ class BannerSerializer(serializers.ModelSerializer):
             'id',
             'title',
             'description',
+            'url',
+            'image',
         ]
 
 
@@ -80,6 +83,7 @@ class ProductCategorySerializer(serializers.ModelSerializer):
 
 
 class ProductSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Product
         fields = [
@@ -89,15 +93,57 @@ class ProductSerializer(serializers.ModelSerializer):
             'detail',
             'price',
             'quantity',
-            'is_watched',
-            'is_favorite',
+            'views',
             'created_date',
             'updated_date',
             'days',
-            'rate',
+            'category',
+            'user',
+            'is_hot',
+            'is_active',
+        ]
+
+    def create(self, validated_data):
+        user = validated_data.get('user')
+        if Product.objects.filter(user=user).count() >= 10 and user.is_business == False:
+            raise serializers.ValidationError('Sorry, but only business user can create more than 5 products.')
+        elif Product.objects.filter(user=user).count() >= 50 and user.is_business:
+            raise serializers.ValidationError('Sorry, but you can create only 50 products')
+        return Product.objects.create(**validated_data)
+
+
+class ProductDetailSerializer(serializers.ModelSerializer):
+    rating = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Product
+        fields = [
+            'id',
+            'name',
+            'description',
+            'detail',
+            'price',
+            'quantity',
+            'rating',
+            'views',
+            'created_date',
+            'updated_date',
+            'days',
             'category',
             'user',
         ]
+
+    def get_rating(self, obj):
+        product_id = obj.id
+        ratings = Rating.objects.filter(product=product_id)
+        total_rating = 0
+        count = 0
+        for i in ratings:
+            total_rating += i.rating
+            count += 1
+        if total_rating != 0:
+            return round(total_rating / count, 1)
+        return total_rating
 
 
 class DateSerializer(serializers.ModelSerializer):
@@ -118,3 +164,28 @@ class FAQSerializer(serializers.ModelSerializer):
             'question',
             'answer',
         ]
+
+
+class RatingSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Rating
+        fields = [
+            'id',
+            'product',
+            'user',
+            'rating',
+        ]
+
+
+class WishListSerializer(serializers.ModelSerializer):
+    product = ProductSerializer(read_only=True)
+
+    class Meta:
+        model = WishList
+        fields = [
+            'id',
+            'user',
+            'product',
+        ]
+

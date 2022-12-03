@@ -31,9 +31,10 @@ router.extend(products_router)
 
 urlpatterns = [
     path('auth/', include('drf_social_oauth2.urls', namespace='drf')),
+    path('accounts/', include('allauth.urls'), name='socialaccount_signup'),
     path('admin/', admin.site.urls),
     path('users/', include('users.urls')),
-    path('', include(router.urls)),
+    path('products/', include(router.urls)),
 
 ]
 

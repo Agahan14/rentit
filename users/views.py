@@ -1,9 +1,15 @@
-import jwt, random, string
-from django.urls import reverse
+import jwt
+import random
+import string
+from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from django.core.mail import send_mail
-from rest_framework.generics import get_object_or_404
-
-from rentit import settings
+from django.shortcuts import render
+from django.urls import reverse
+from django_filters.rest_framework import DjangoFilterBackend
+from dj_rest_auth.registration.serializers import SocialLoginSerializer
+from dj_rest_auth.registration.views import SocialLoginView
 from rest_framework import (
     generics,
     status,
@@ -15,20 +21,23 @@ from rest_framework.exceptions import (
     AuthenticationFailed,
     NotAcceptable,
 )
-from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from twilio.rest import Client
-from .utils import Util
+from rentit import settings
 from .models import (
     User,
-    Address,
+    Direction,
     Map,
     PasswordReset,
     PasswordResetByPhone,
     FollowingSystem,
+    Tariff,
+    GetTariff,
+    Props,
 )
 from .serializers import (
     RegisterUserSerializer,
@@ -36,30 +45,42 @@ from .serializers import (
     EmailVerificationSerializer,
     UserListSerializer,
     UserMiniSerializer,
-    AddressSerializer,
+    DirectionSerializer,
     MapSerializer,
-    CustomUserSerializer,
     UserContactSerializer,
     UserFollowingSerializer,
     ApproveUserSerializer,
+    ResetPasswordSerializer,
+    UserProfileSerializer,
+    ChangePasswordSerializer,
+    ArchiveUserSerializer,
+    PropsSerializer,
+    GetTariffSerializer,
+    TariffSerializer,
 )
-from .permissions import (
-    IsClient,
-    IsSuperUser,
-)
+from .utils import Util
 
 
-class CustomUserCreate(APIView):
-    permission_classes = [AllowAny]
+class FacebookLogin(SocialLoginView):
+    adapter_class = FacebookOAuth2Adapter
+    client_class = OAuth2Client
+    serializer_class = SocialLoginSerializer
 
-    def post(self, request, format='json'):
-        serializer = CustomUserSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.save()
-            if user:
-                json = serializer.data
-                return Response(json, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        kwargs['context'] = self.get_serializer_context()
+        return serializer_class(*args, **kwargs)
+
+
+class GoogleLogin(SocialLoginView):
+    adapter_class = GoogleOAuth2Adapter
+    client_class = OAuth2Client
+    serializer_class = SocialLoginSerializer
+
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        kwargs['context'] = self.get_serializer_context()
+        return serializer_class(*args, **kwargs)
 
 
 class RegisterView(generics.GenericAPIView):
@@ -74,12 +95,10 @@ class RegisterView(generics.GenericAPIView):
             user_data = serializer.data
 
             user = User.objects.get(email=user_data["email"])
-            # user.is_active = False
-            # user.save()
             token = RefreshToken.for_user(user)
             current_site = request.get_host()
             link = reverse("email_verify")
-            url = "http://" + current_site + link + "?token=" + str(token)
+            url = "http://" + "localhost:3000" + link + "?token=" + str(token)
             body = "Hi " + " Use the link below to verify your email \n" + url
             data = {
                 "email_body": body,
@@ -89,6 +108,34 @@ class RegisterView(generics.GenericAPIView):
 
             Util.send_email(data)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class RegisterPhone(generics.GenericAPIView):
+    serializer_class = RegisterUserSerializer
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        serializer = RegisterUserSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+
+            user_data = serializer.data
+
+            user = User.objects.get(email=user_data["email"])
+            user.is_verified = True
+            user.save()
+            refresh_token = RefreshToken.for_user(user)
+            data = {
+                "id": user.id,
+                "first_name": str(user.first_name),
+                "email": str(user.email),
+                "refresh_token": str(refresh_token),
+                "access_token": str(refresh_token.access_token),
+            }
+
+            return Response(data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -139,7 +186,12 @@ class LoginView(generics.GenericAPIView):
 
         return Response(
             {
-                "status": "You successfully logged in",
+                'first_name': user.first_name,
+                'email': user.email,
+                'user_type': user.user_type,
+                'followers': str(user.followers.count()),
+                'followings': str(user.following.count()),
+                'user_id': user.id,
                 "refresh": str(refresh),
                 "access": str(refresh.access_token),
             }
@@ -149,6 +201,7 @@ class LoginView(generics.GenericAPIView):
 class ForgotPasswordByPhoneAPIView(APIView):
     def post(self, request):
         phone = request.data['phone']
+        print(request.data['phone'])
         try:
             user = User.objects.get(phone=phone)
         except User.DoesNotExist:
@@ -157,14 +210,14 @@ class ForgotPasswordByPhoneAPIView(APIView):
 
         PasswordResetByPhone.objects.create(phone=phone, token=token)
 
-        account_sid = "ACdeb64be8247471d24bf58c28e45b89ac"
-        auth_token = "a857b4819bc02678ef1693c63bf9307b"
+        account_sid = "ACbaed99a5ff0ae25a71bc4698ac44bebd"
+        auth_token = "121d2d48369669f150c70792c7c44773"
         client = Client(account_sid, auth_token)
 
         message = client.messages.create(
             body='Your verification PIN is: ' + token,
-            from_="+16802195991",
-            to=request.data['phone'],
+            from_="+18317447330",
+            to=phone,
         )
 
         print(message.sid)
@@ -201,61 +254,81 @@ class ResetPasswordAPIView(APIView):
     def post(self, request):
         data = request.data
 
-        if data['password'] != data['password_confirm']:
-            raise exceptions.APIException('Password do not match')
-
         passwordReset = PasswordReset.objects.filter(token=data['token']).first()
+
+        if data['token'] != passwordReset.token:
+            raise exceptions.APIException('Code is incorrect!')
 
         user = User.objects.filter(email=passwordReset.email).first()
 
         if not user:
             raise exceptions.NotFound('User not found!')
 
-        # PasswordReset.objects.update(token="agahasndasd")
-
-        user.set_password(data['password'])
-        # passwordReset.save()
-
-        user.save()
-
+        user_id = user.pk
         return Response({
-                'message': 'success'
-            })
+            'message': 'success',
+            'user': str(user_id)
+        })
 
 
 class ResetPasswordByPhoneAPIView(APIView):
     def post(self, request):
         data = request.data
 
-        if data['password'] != data['password_confirm']:
-            raise exceptions.APIException('Password do not match')
-
         passwordResetByPhone = PasswordResetByPhone.objects.filter(token=data['token']).first()
+
+        if data['token'] != int(passwordResetByPhone.token):
+            raise exceptions.APIException('Code is incorrect!')
 
         user = User.objects.filter(phone=passwordResetByPhone.phone).first()
 
         if not user:
             raise exceptions.NotFound('User not found!')
 
-
-        user.set_password(data['password'])
-
-        user.save()
-
+        user_id = user.pk
         return Response({
-                'message': 'success'
-            })
+            'message': 'success',
+            'user': user_id
+        })
+
+
+class ResetPasswordView(generics.UpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = ResetPasswordSerializer
+
+
+class ChangePasswordView(generics.UpdateAPIView):
+
+    queryset = User.objects.all()
+    # permission_classes = (IsAuthenticated,)
+    serializer_class = ChangePasswordSerializer
 
 
 class ClientViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.filter(is_staff=False)
+    queryset = User.objects.filter(user_type='client').filter(is_active=True).filter(is_archive=False)
     serializer_class = UserListSerializer
     http_method_names = ['get', 'put', 'patch', 'delete']
     # permission_classes = (IsSuperUser,)
 
 
+class UserProfileViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.filter(is_active=True).filter(is_archive=False)
+    serializer_class = UserProfileSerializer
+    
+    # def get_queryset(self):
+    #     return User.objects.filter(id=self.request.user.id)
+    # http_method_names = ['get', 'put', 'patch']
+    # permission_classes = (IsSuperUser,)
+
+
+class CurrentUserView(APIView):
+    def get(self, request):
+        serializer = UserProfileSerializer(request.user)
+        return Response(serializer.data)
+
+
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
+    queryset = User.objects.filter(is_active=True).filter(is_archive=False)
     serializer_class = UserListSerializer
     http_method_names = ['get', 'put', 'patch', 'delete']
     filter_backends = (
@@ -264,24 +337,24 @@ class UserViewSet(viewsets.ModelViewSet):
         filters.OrderingFilter,
     )
     filterset_fields = ('birth_date', 'first_name', 'email', 'phone')
-    search_fields = ['email', 'phone', 'first_name', 'last_name',]
+    search_fields = ['email', 'phone', 'first_name', 'last_name', ]
 
 
 class SupportViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.filter(is_staff=True).filter(is_superuser=False)
+    queryset = User.objects.filter(user_type='support').filter(is_active=True).filter(is_archive=False)
     serializer_class = UserMiniSerializer
     http_method_names = ['get', 'put', 'patch', 'delete']
 
 
 class AdminViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.filter(is_superuser=True)
+    queryset = User.objects.filter(user_type='admin')
     serializer_class = UserMiniSerializer
     http_method_names = ['get', 'put', 'patch', 'delete']
 
 
-class AddressViewSet(viewsets.ModelViewSet):
-    queryset = Address.objects.all()
-    serializer_class = AddressSerializer
+class DirectionViewSet(viewsets.ModelViewSet):
+    queryset = Direction.objects.all()
+    serializer_class = DirectionSerializer
 
 
 class MapViewSet(viewsets.ModelViewSet):
@@ -329,5 +402,36 @@ class UserContactViewSet(viewsets.ViewSet):
 
 class ApproveUserViewSet(viewsets.ModelViewSet):
     serializer_class = ApproveUserSerializer
-    queryset = User.objects.filter(is_staff=False).filter(is_active=False)
+    queryset = User.objects.filter(is_active=False)
     lookup_field = 'id'
+
+
+class ArchiveUserViewSet(viewsets.ModelViewSet):
+    serializer_class = ArchiveUserSerializer
+    queryset = User.objects.filter(is_archive=False)
+    lookup_field = 'id'
+
+
+class ArchiveListUserViewSet(viewsets.ModelViewSet):
+    serializer_class = UserMiniSerializer
+    queryset = User.objects.filter(is_archive=True)
+    lookup_field = 'id'
+
+
+class TariffViewSet(viewsets.ModelViewSet):
+    serializer_class = TariffSerializer
+    queryset = Tariff.objects.all()
+
+
+class GetTariffViewSet(viewsets.ModelViewSet):
+    serializer_class = GetTariffSerializer
+    queryset = GetTariff.objects.all()
+
+
+class PropsViewSet(viewsets.ModelViewSet):
+    serializer_class = PropsSerializer
+    queryset = Props.objects.all()
+
+
+def index(request):
+    return render(request, 'index.html')

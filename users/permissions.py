@@ -15,7 +15,8 @@ class IsClient(BasePermission):
     def has_permission(self, request, view):
         return bool(
             request.user.is_anonymous
-            or request.user.role == 2
+            or request.user.is_staff == False and
+            request.user.is_superuser == False
         )
 
 
@@ -31,16 +32,19 @@ class IsOrderClient(BasePermission):
     def has_permission(self, request, view):
         return bool(
             request.user.is_anonymous
-            or request.user.role == 2
+            or request.user.is_staff == False and
+            request.user.is_superuser == False
             and request.method not in self.edit_methods
-
         )
 
     def has_object_permission(self, request, view, obj):
 
         if request.method in SAFE_METHODS:
             return True
-        if request.user.is_anonymous or request.user.role == 2 and request.method not in self.edit_methods:
+        if request.user.is_anonymous or \
+                request.user.is_staff == False and \
+                request.user.is_superuser == False and \
+                request.method not in self.edit_methods:
             return True
         return False
 
@@ -57,7 +61,7 @@ class IsSupport(BasePermission):
     def has_permission(self, request, view):
         return bool(
             request.user.is_anonymous
-            or request.user.role == 1
+            or request.user.is_staff and request.user.is_superuser == False
             and request.method not in self.edit_methods
 
         )
@@ -66,6 +70,8 @@ class IsSupport(BasePermission):
 
         if request.method in SAFE_METHODS:
             return True
-        if request.user.is_anonymous or request.user.role == 1 and request.method not in self.edit_methods:
+        if request.user.is_anonymous or request.user.is_staff \
+                and request.user.is_superuser == False \
+                and request.method not in self.edit_methods:
             return True
         return False
