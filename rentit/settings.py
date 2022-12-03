@@ -61,6 +61,8 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.twitter',
     'allauth.socialaccount.providers.google',
     'django_filters',
+    # 'django_celery_results',
+    'django_celery_beat',
 
     #apps
     'users',
@@ -85,11 +87,7 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',
-    "https://c71b-91-205-49-75.eu.ngrok.io",
-    'http://localhost:3001',
-]
+CORS_ALLOW_ALL_ORIGINS = True
 ROOT_URLCONF = 'rentit.urls'
 
 TEMPLATES = [
@@ -175,7 +173,7 @@ AUTH_USER_MODEL = 'users.User'
 
 MEDIA_URL = '/media/'
 # DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
@@ -239,6 +237,8 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': 'a7qdOtRCrkSX3V8RaFvy_0lQdkY',
 }
 
+GOOGLE_MAPS_API_KEY = "AIzaSyBXljEubsbkyOPAQKr1U9mXRVnJUnmSVfs"
+
 TWILIO_ACCOUNT_SID = "ACbaed99a5ff0ae25a71bc4698ac44bebd"
 TWILIO_AUTH_TOKEN = "121d2d48369669f150c70792c7c44773"
 TWILIO_PHONE_NUMBER = "+18317447330"
@@ -257,3 +257,15 @@ SOCIALACCOUNT_PROVIDERS = {
         },
     },
 }
+
+
+# REDIS_HOST = '0.0.0.0'
+# REDIS_PORT = '6379'
+# CELERY_BROKER_URL = "redis://" + REDIS_HOST + ":" + REDIS_PORT + "/0"
+# # CELERY_BROKER_URL = 'redis://redis:6379'
+# CELERY_RESULT_BACKEND = "redis://" + REDIS_HOST + ":" + REDIS_PORT + "/0"
+CELERY_BROKER_URL="redis://redis:6379/0"
+CELERY_RESULT_BACKEND="redis://redis:6379/0"
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'

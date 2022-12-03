@@ -1,26 +1,22 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8"/>
-    <title>Chat Rooms</title>
+    <title>RentIt</title>
+    <meta charset="UTF-8"/>
+    <link rel="stylesheet" href="{% static 'static/style.csc' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin&family=Manrope&display=swap" rel="stylesheet">
 </head>
 <body>
-    What chat room would you like to enter?<br/>
-    <input id="room-name-input" type="text" size="100"/><br/>
-    <input id="room-name-submit" type="button" value="Enter"/>
-
-    <script>
-        document.querySelector('#room-name-input').focus();
-        document.querySelector('#room-name-input').onkeyup = function(e) {
-            if (e.keyCode === 13) {  // enter, return
-                document.querySelector('#room-name-submit').click();
-            }
-        };
-
-        document.querySelector('#room-name-submit').onclick = function(e) {
-            var roomName = document.querySelector('#room-name-input').value;
-            window.location.pathname = '/chat/' + roomName + '/';
-        };
-    </script>
+    <div class="wrapper">
+        <div class="imgWrap">
+            <img src= "{%static 'img/back.png' %}" class="img">
+        </div>
+        <h1 class="tit">Ваш email успешно активирован</h1>
+            <p>Можете закрыть это окно и продолжить работу </p>
+        </div>
 </body>
 </html>

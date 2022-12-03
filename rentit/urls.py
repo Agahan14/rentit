@@ -34,8 +34,7 @@ urlpatterns = [
     path('accounts/', include('allauth.urls'), name='socialaccount_signup'),
     path('admin/', admin.site.urls),
     path('users/', include('users.urls')),
-    path('', include(router.urls)),
-
+    path('products/', include(router.urls)),
 
 ]
 
