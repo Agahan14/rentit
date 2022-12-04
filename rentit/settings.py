@@ -24,10 +24,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-w=$38q@9d9c+z*0*5$)+is&-s%m_c$7ktbh-8)bryxbvj!*b3v'  # 'django-insecure-w=$38q@9d9c+z*0*5$)+is&-s%m_c$7ktbh-8)bryxbvj!*b3v'
-
+SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', cast=bool)
 
 ALLOWED_HOSTS = ['*']
 
@@ -112,26 +111,23 @@ WSGI_APPLICATION = 'rentit.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+
 if DEBUG:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': config('DISTRIBUTOR_DB_NAME', 'distributor'),
-            'USER': config('DISTRIBUTOR_DB_USER', 'postgres'),
-            'PASSWORD': config('DISTRIBUTOR_DB_PASSWORD'),
-            'HOST': config('DISTRIBUTOR_DB_HOST', 'localhost'),
-            'PORT': config('DISTRIBUTOR_DB_PORT', 5432),
+            'NAME': config('DB_NAME'),
+            'USER': config('DB_USER'),
+            'PASSWORD': config('DB_PASSWORD'),
+            'HOST': config('DB_HOST'),
+            'PORT': config('DB_PORT'),
         }
     }
 else:
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': 'db',
-            'USER': 'db',
-            'PASSWORD': 'AVNS_cdor6vbS26uOtIetPeC',
-            'HOST': 'app-5e2ccd5f-7a9b-4c8d-8444-4a5ce4cb747b-do-user-12716065-0.b.db.ondigitalocean.com',
-            'PORT': '25060',
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
 
@@ -230,46 +226,40 @@ SIMPLE_JWT = {
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
+EMAIL_PORT = config('EMAIL_PORT')
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "Imamidinov.agahan06@gmail.com"
-EMAIL_HOST_PASSWORD = 'niopyhumsvabprug'
+EMAIL_HOST_USER = config("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': 'neomedtech',
-    'API_KEY': '593439743526366',
-    'API_SECRET': 'a7qdOtRCrkSX3V8RaFvy_0lQdkY',
+    'CLOUD_NAME': config('CLOUD_NAME'),
+    'API_KEY': config('API_KEY'),
+    'API_SECRET': config('API_SECRET'),
 }
 
 GOOGLE_MAPS_API_KEY = "AIzaSyBXljEubsbkyOPAQKr1U9mXRVnJUnmSVfs"
 
-TWILIO_ACCOUNT_SID = "ACbaed99a5ff0ae25a71bc4698ac44bebd"
-TWILIO_AUTH_TOKEN = "121d2d48369669f150c70792c7c44773"
-TWILIO_PHONE_NUMBER = "+18317447330"
+TWILIO_ACCOUNT_SID = config('TWILIO_ACCOUNT_SID')
+TWILIO_AUTH_TOKEN = config('TWILIO_AUTH_TOKEN')
+TWILIO_PHONE_NUMBER = config('TWILIO_PHONE_NUMBER')
 
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
         "APP": {
-            "client_id": "699520499255-4vfqg7m5j7cj88tooik2hhn0jbn844hk.apps.googleusercontent.com",
-            "secret": "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",
+            "client_id": config("GOOGLE_ID"),
+            "secret": config("GOOGLE_SECRET"),
         },
     },
     'facebook': {
         "APP": {
-            "client_id": "605440604668383",
-            "secret": "243e5ed39cf99040970031fec6950739",
+            "client_id": config("FACEBOOK_ID"),
+            "secret": config("FACEBOOK_SECRET"),
         },
     },
 }
 
-
-# REDIS_HOST = '0.0.0.0'
-# REDIS_PORT = '6379'
-# CELERY_BROKER_URL = "redis://" + REDIS_HOST + ":" + REDIS_PORT + "/0"
-# # CELERY_BROKER_URL = 'redis://redis:6379'
-# CELERY_RESULT_BACKEND = "redis://" + REDIS_HOST + ":" + REDIS_PORT + "/0"
-CELERY_BROKER_URL="redis://redis:6379/0"
-CELERY_RESULT_BACKEND="redis://redis:6379/0"
+CELERY_BROKER_URL=config('CELERY_BROKER_URL')
+CELERY_RESULT_BACKEND=config('CELERY_RESULT_BACKEND')
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
