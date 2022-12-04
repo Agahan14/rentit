@@ -35,7 +35,7 @@ urlpatterns = [
     path('accounts/', include('allauth.urls'), name='socialaccount_signup'),
     path('admin/', admin.site.urls),
     path('users/', include('users.urls')),
-    path('products/', include(router.urls)),
+    path('', include(router.urls)),
     path('product-like/', ProductLikeView.as_view(), name='product-like'),
 ]
 
