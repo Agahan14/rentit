@@ -123,15 +123,11 @@ class ProductDetailSerializer(serializers.ModelSerializer):
             'id',
             'name',
             'description',
-            'detail',
             'price',
-            'quantity',
             'rating',
             'views',
             'created_date',
             'updated_date',
-            'days',
-            'category',
             'user',
         ]
 
