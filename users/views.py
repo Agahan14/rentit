@@ -220,8 +220,6 @@ class ForgotPasswordByPhoneAPIView(APIView):
             to=phone,
         )
 
-        print(message.sid)
-
         return Response({
             'message': 'Please check your phone!'
         })

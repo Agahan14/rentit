@@ -8,11 +8,11 @@ from .views import (
     ProductCategoryViewSet,
     CommentViewSet,
     FAQViewSet,
-    ProductDetailViewSet,
     RatingViewSet,
     FollowingViewSet,
-    MyProductViewSet, ProductSubCategoryViewSet, BrandViewSet,
-
+    MyProductViewSet,
+    ProductSubCategoryViewSet,
+    BrandViewSet,
 )
 
 products_router = DefaultRouter()
@@ -25,7 +25,6 @@ products_router.register(r'product-sub-category', ProductSubCategoryViewSet)
 products_router.register(r'brand', BrandViewSet)
 products_router.register(r'comment', CommentViewSet)
 products_router.register(r'FAQ', FAQViewSet)
-products_router.register(r'product-detail', ProductDetailViewSet, basename='product-detail')
 products_router.register(r'rating', RatingViewSet)
 products_router.register(r'subscribers', FollowingViewSet, basename='subscribers')
 products_router.register(r'my-products', MyProductViewSet, basename='my-products')

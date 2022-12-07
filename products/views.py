@@ -20,7 +20,8 @@ from .models import (
     Comment,
     FAQ,
     Rating,
-    ProductSubCategory, Brand,
+    ProductSubCategory,
+    Brand,
 )
 from .serializers import (
     ProductSerializer,
@@ -29,9 +30,9 @@ from .serializers import (
     BannerSerializer,
     CommentSerializer,
     FAQSerializer,
-    ProductDetailSerializer,
     RatingSerializer,
-    ProductSubCategorySerializer, BrandSerializer,
+    ProductSubCategorySerializer,
+    BrandSerializer,
 )
 
 
@@ -87,11 +88,6 @@ class CommentViewSet(viewsets.ModelViewSet):
 class FAQViewSet(viewsets.ModelViewSet):
     serializer_class = FAQSerializer
     queryset = FAQ.objects.all()
-
-
-class ProductDetailViewSet(viewsets.ModelViewSet):
-    serializer_class = ProductDetailSerializer
-    queryset = Product.objects.all()
 
 
 class RatingViewSet(viewsets.ModelViewSet):

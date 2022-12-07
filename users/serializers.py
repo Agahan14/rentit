@@ -7,6 +7,7 @@ from products.models import (
     Product,
     Rating,
 )
+from datetime import datetime, timedelta
 from products.serializers import ProductSerializer
 from .models import (
     User,
@@ -53,7 +54,6 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         fields = (
             "first_name",
             "email",
-            # "phone",
             "password",
             "message",
         )
@@ -62,15 +62,6 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         return (
             "Verification message has been sent to your email, please verify your email"
         )
-
-    # def validate_phone(self, value):
-    #     if not value[1:].isnumeric():
-    #         raise serializers.ValidationError('Phone must be numeric symbols')
-    #     if value[:4] != '+996':
-    #         raise serializers.ValidationError('Phone number should start with +996 ')
-    #     elif len(value) != 13:
-    #         raise serializers.ValidationError("Phone number must be 13 characters long")
-    #     return value
 
     def create(self, validated_data):
         return User.objects.create_user(**validated_data)
@@ -143,8 +134,6 @@ class UserListSerializer(serializers.ModelSerializer):
     def get_following_count(self, obj):
 
         return obj.following.count()
-
-        # total_rating =
 
     def get_rate(self, obj):
         user_id = obj.id
@@ -341,17 +330,21 @@ class GetTariffSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         user = validated_data.get('user')
         product = Product.objects.filter(user=user)
+        instance.pictures = validated_data.get('pictures', instance.pictures)
         instance.is_approve = validated_data.get('is_approve', instance.is_approve)
         instance.end_time = validated_data.get('end_time', instance.end_time)
+        get_tariff = validated_data.get('tariff')
+        tariff = Tariff.objects.filter(pk=get_tariff.id)
 
-        if instance.is_approve == True:
+        if instance.is_approve is True:
             user.is_business = True
             user.save()
             if product.exists():
                 for i in product:
                     i.is_hot = True
                     i.save()
-
+            # for i in tariff:
+            #     instance.end_time = datetime.now() + timedelta(days=i.month * 30)
         instance.save()
         return instance
 

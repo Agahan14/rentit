@@ -68,6 +68,7 @@ class ProductSerializer(serializers.ModelSerializer):
     likes = serializers.SerializerMethodField()
     pictures = PicturesSerializer(many=True)
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
@@ -77,6 +78,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'description',
             'price',
             'views',
+            'rating',
             'created_date',
             'updated_date',
             'sub_category',
@@ -100,6 +102,18 @@ class ProductSerializer(serializers.ModelSerializer):
     def get_likes(self, obj):
         return obj.likes_count()
 
+    def get_rating(self, obj):
+        product_id = obj.id
+        ratings = Rating.objects.filter(product=product_id)
+        total_rating = 0
+        count = 0
+        for i in ratings:
+            total_rating += i.rating
+            count += 1
+        if total_rating != 0:
+            return round(total_rating / count, 1)
+        return total_rating
+
     def validate_user(self, user):
         count = Product.objects.filter(user=user).count()
         if count >= 15 and user.is_business is False:
@@ -112,36 +126,6 @@ class ProductSerializer(serializers.ModelSerializer):
         if len(pictures) > 10:
             raise serializers.ValidationError('Sorry, but only business user can create more than 10 products.')
         return pictures
-
-
-class ProductDetailSerializer(serializers.ModelSerializer):
-    rating = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Product
-        fields = [
-            'id',
-            'name',
-            'description',
-            'price',
-            'rating',
-            'views',
-            'created_date',
-            'updated_date',
-            'user',
-        ]
-
-    def get_rating(self, obj):
-        product_id = obj.id
-        ratings = Rating.objects.filter(product=product_id)
-        total_rating = 0
-        count = 0
-        for i in ratings:
-            total_rating += i.rating
-            count += 1
-        if total_rating != 0:
-            return round(total_rating / count, 1)
-        return total_rating
 
 
 class FAQSerializer(serializers.ModelSerializer):
