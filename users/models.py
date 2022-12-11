@@ -57,6 +57,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
     middle_name = models.CharField(max_length=255)
+    address = models.CharField(max_length=255, blank=True, null=True)
     user_type = models.CharField(max_length=255, choices=user_type_choices,null=True, default='client')
     phone = models.CharField(max_length=255, unique=True, null=True)
     birth_date = models.DateField(null=True)

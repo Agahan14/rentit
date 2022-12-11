@@ -158,6 +158,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'middle_name',
+            'address',
             'pictures',
             'passport_series',
             'passport_issues_date',
@@ -166,7 +167,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'face_pictures',
             'email',
             'phone',
-            'product_like'
+            'product_like',
         ]
 
 
