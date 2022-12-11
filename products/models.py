@@ -59,6 +59,9 @@ class Brand(models.Model):
     name = models.CharField(verbose_name="Название производителя", max_length=256)
     sub_category = models.ManyToManyField(ProductSubCategory, blank=True)
 
+    def __str__(self):
+        return self.name
+
 
 class Product(models.Model):
     name = models.CharField(verbose_name="name", max_length=256)
