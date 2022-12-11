@@ -403,3 +403,6 @@ class GetTariffViewSet(viewsets.ModelViewSet):
 class PropsViewSet(viewsets.ModelViewSet):
     serializer_class = PropsSerializer
     queryset = Props.objects.all()
+
+def index(request):
+    return render(request, 'index.html')

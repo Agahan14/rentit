@@ -31,6 +31,7 @@ from .views import (
     GetTariffViewSet,
     TariffViewSet,
     PropsViewSet,
+    index,
 )
 
 
@@ -66,5 +67,6 @@ urlpatterns = [
     path('me', CurrentUserView.as_view(),  name='me'),
     path("reset-password/<int:pk>", ResetPasswordView.as_view(), name="change-password"),
     path('change-password/<int:pk>/', ChangePasswordView.as_view(), name='auth_change_password'),
+    path('index', index, name='index'),
 
 ]
