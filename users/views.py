@@ -165,7 +165,7 @@ class LoginView(generics.GenericAPIView):
                 'user_type': user.user_type,
                 'followers': str(user.followers.count()),
                 'followings': str(user.following.count()),
-                'user_id': user.id,
+                'user_id': str(user.id),
                 "refresh": str(refresh),
                 "access": str(refresh.access_token),
             }
