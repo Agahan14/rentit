@@ -5,6 +5,33 @@
 <head>
     <title>RentIt</title>
     <meta charset="UTF-8"/>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Manrope&display=swap');
+*{
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Manrope', sans-serif;
+
+}
+.wrapper{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    flex-direction: column;
+}
+.tit{
+    margin:20px;
+}
+.imgWrap{
+    max-width: 500px;
+    display: flex;
+}
+.img{
+    max-width: 100%;
+}
+    </style>
     <link rel="stylesheet" href="{% static 'static/style.csc' %}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,7 +40,7 @@
 <body>
     <div class="wrapper">
         <div class="imgWrap">
-            <img src= "{%static 'img/back.png' %}" class="img">
+            <img src= "" class="img">
         </div>
         <h1 class="tit">Ваш email успешно активирован</h1>
             <p>Можете закрыть это окно и продолжить работу </p>
