@@ -98,7 +98,7 @@ class RegisterView(generics.GenericAPIView):
             token = RefreshToken.for_user(user)
             current_site = request.get_host()
             link = reverse("email_verify")
-            url = "http://" + "localhost:3000" + link + "?token=" + str(token)
+            url = "https://" + current_site + link + "?token=" + str(token)
             body = "Hi " + " Use the link below to verify your email \n" + url
             data = {
                 "email_body": body,
@@ -112,37 +112,10 @@ class RegisterView(generics.GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class RegisterPhone(generics.GenericAPIView):
-    serializer_class = RegisterUserSerializer
-    permission_classes = (AllowAny,)
-
-    def post(self, request):
-        serializer = RegisterUserSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-
-            user_data = serializer.data
-
-            user = User.objects.get(email=user_data["email"])
-            user.is_verified = True
-            user.save()
-            refresh_token = RefreshToken.for_user(user)
-            data = {
-                "id": user.id,
-                "first_name": str(user.first_name),
-                "email": str(user.email),
-                "refresh_token": str(refresh_token),
-                "access_token": str(refresh_token.access_token),
-            }
-
-            return Response(data, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 class VerifyEmailView(APIView):
     serializer_class = EmailVerificationSerializer
     permission_classes = [AllowAny]
+
 
     def get(self, request):
         token = request.GET.get("token")
@@ -152,9 +125,10 @@ class VerifyEmailView(APIView):
             if not user.is_verified:
                 user.is_verified = True
                 user.save()
-                return Response(
-                    {"email": "Successfully activated"}, status=status.HTTP_200_OK
-                )
+                return render(request, 'index.html')
+        #         return Response(
+        #             {"email": "Successfully activated"}, status=status.HTTP_200_OK
+        #         )
         except jwt.ExpiredSignatureError:
             return Response(
                 {"error": "Activation Expired"}, status=status.HTTP_400_BAD_REQUEST
@@ -303,14 +277,14 @@ class ChangePasswordView(generics.UpdateAPIView):
 
 
 class ClientViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.filter(user_type='client').filter(is_active=True).filter(is_archive=False)
+    queryset = User.objects.filter(user_type='client').filter(is_archive=False)
     serializer_class = UserListSerializer
     http_method_names = ['get', 'put', 'patch', 'delete']
     # permission_classes = (IsSuperUser,)
 
 
 class UserProfileViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.filter(is_active=True).filter(is_archive=False)
+    queryset = User.objects.filter(is_archive=False)
     serializer_class = UserProfileSerializer
     
     # def get_queryset(self):
@@ -326,7 +300,7 @@ class CurrentUserView(APIView):
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.filter(is_active=True).filter(is_archive=False)
+    queryset = User.objects.filter(is_archive=False)
     serializer_class = UserListSerializer
     http_method_names = ['get', 'put', 'patch', 'delete']
     filter_backends = (
@@ -339,7 +313,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class SupportViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.filter(user_type='support').filter(is_active=True).filter(is_archive=False)
+    queryset = User.objects.filter(user_type='support').filter(is_archive=False)
     serializer_class = UserMiniSerializer
     http_method_names = ['get', 'put', 'patch', 'delete']
 
@@ -429,7 +403,3 @@ class GetTariffViewSet(viewsets.ModelViewSet):
 class PropsViewSet(viewsets.ModelViewSet):
     serializer_class = PropsSerializer
     queryset = Props.objects.all()
-
-
-def index(request):
-    return render(request, 'index.html')

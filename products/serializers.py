@@ -45,15 +45,6 @@ class CommentSerializer(serializers.ModelSerializer):
         ]
 
 
-class ProductCategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProductCategory
-        fields = [
-            'id',
-            'name',
-        ]
-
-
 class ProductSubCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductSubCategory
@@ -63,6 +54,18 @@ class ProductSubCategorySerializer(serializers.ModelSerializer):
             'product_category',
             'characteristic',
 
+        ]
+
+
+class ProductCategorySerializer(serializers.ModelSerializer):
+    sub_category = ProductSubCategorySerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ProductCategory
+        fields = [
+            'id',
+            'name',
+            'sub_category',
         ]
 
 
