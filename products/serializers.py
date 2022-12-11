@@ -59,8 +59,10 @@ class ProductSubCategorySerializer(serializers.ModelSerializer):
         model = ProductSubCategory
         fields = [
             'id',
+            'name',
             'product_category',
-            'characteristic'
+            'characteristic',
+
         ]
 
 
