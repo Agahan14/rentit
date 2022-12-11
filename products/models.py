@@ -33,9 +33,19 @@ class ProductCategory(models.Model):
 
 class ProductSubCategory(models.Model):
     name = models.CharField('Название подкатегории', max_length=256)
-    product_category = models.ForeignKey(ProductCategory, on_delete=models.CASCADE, verbose_name='Категория продукта')
-    characteristic = ArrayField(models.CharField(max_length=256, blank=True, null=True), blank=True, null=True,
-                                verbose_name='Шаблон для характеристик')
+    product_category = models.ForeignKey(
+        ProductCategory,
+        on_delete=models.CASCADE,
+        verbose_name='Категория продукта',
+        related_name='sub_category')
+    characteristic = ArrayField(models.CharField(
+        max_length=256,
+        blank=True,
+        null=True),
+        blank=True,
+        null=True,
+        verbose_name='Шаблон для характеристик',
+    )
 
     class Meta:
         verbose_name = 'Подкатегория'
