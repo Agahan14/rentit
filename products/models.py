@@ -93,7 +93,7 @@ class Product(models.Model):
     is_active = models.BooleanField(default=True)
     characteristic = models.JSONField('Характеристики продукта')
     like = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='product_like', blank=True)
-    currency = models.CharField(max_length=255, choices=currencies, default='som', null=True)
+    currency = models.CharField(max_length=255, choices=currencies, default='some', null=True)
 
     def likes_count(self):
         return self.like.count()
