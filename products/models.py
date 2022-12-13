@@ -66,7 +66,7 @@ class Brand(models.Model):
 class Product(models.Model):
 
     currencies = [
-        ('som', 'some'),
+        ('some', 'some'),
         ('dollar', 'dollar'),
     ]
 
@@ -90,7 +90,7 @@ class Product(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL,
                              on_delete=models.CASCADE, null=True, related_name='product')
     is_hot = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
     characteristic = models.JSONField('Характеристики продукта')
     like = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='product_like', blank=True)
     currency = models.CharField(max_length=255, choices=currencies, default='som', null=True)
