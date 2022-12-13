@@ -64,6 +64,12 @@ class Brand(models.Model):
 
 
 class Product(models.Model):
+
+    currencies = [
+        ('som', 'some'),
+        ('dollar', 'dollar'),
+    ]
+
     name = models.CharField(verbose_name="name", max_length=256)
     description = models.TextField(blank=True)
     brand = models.ForeignKey(Brand, blank=True, null=True, on_delete=models.CASCADE)
@@ -87,6 +93,7 @@ class Product(models.Model):
     is_active = models.BooleanField(default=False)
     characteristic = models.JSONField('Характеристики продукта')
     like = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='product_like', blank=True)
+    currency = models.CharField(max_length=255, choices=currencies, default='som', null=True)
 
     def likes_count(self):
         return self.like.count()

@@ -126,9 +126,9 @@ class VerifyEmailView(APIView):
                 user.is_verified = True
                 user.save()
                 return render(request, 'index.html')
-        #         return Response(
-        #             {"email": "Successfully activated"}, status=status.HTTP_200_OK
-        #         )
+                # return Response(
+                #     {"email": "Successfully activated"}, status=status.HTTP_200_OK
+                # )
         except jwt.ExpiredSignatureError:
             return Response(
                 {"error": "Activation Expired"}, status=status.HTTP_400_BAD_REQUEST
