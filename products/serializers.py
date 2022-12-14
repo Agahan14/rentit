@@ -101,8 +101,11 @@ class ProductSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         pictures = validated_data.pop('pictures')
         product = Product.objects.create(**validated_data)
+        print(pictures)
+        print(" asdasdas")
         for picture in pictures:
             Pictures.objects.create(**picture, product=product)
+            print(picture)
         return product
 
     def get_likes(self, obj):
