@@ -15,8 +15,8 @@ from .serializers import ChatSerializer
 User = get_user_model()
 
 
-def get_user_contact(first_name):
-    user = get_object_or_404(User, first_name=first_name)
+def get_user_contact(email):
+    user = get_object_or_404(User, email=email)
     contact = get_object_or_404(Contact, user=user)
 
 
@@ -27,9 +27,9 @@ class ChatListView(ListAPIView):
 
     def get_queryset(self):
         queryset = Chat.objects.all()
-        first_name = self.request.query_params.get('first_name', None)
-        if first_name is not None:
-            contact = get_user_contact(first_name)
+        email = self.request.query_params.get('email', None)
+        if email is not None:
+            contact = get_user_contact(email)
             queryset = contact.chats.all()
         return queryset
 
