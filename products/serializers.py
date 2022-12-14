@@ -71,7 +71,7 @@ class ProductCategorySerializer(serializers.ModelSerializer):
 
 class ProductSerializer(serializers.ModelSerializer):
     likes = serializers.SerializerMethodField()
-    pictures = PicturesSerializer(many=True)
+    # pictures = PicturesSerializer(many=True)
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     rating = serializers.SerializerMethodField()
 
@@ -137,10 +137,10 @@ class ProductSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Sorry, but you can create only 50 products')
         return user
 
-    def validate_pictures(self, pictures):
-        if len(pictures) > 10:
-            raise serializers.ValidationError('Sorry, but only business user can create more than 10 products.')
-        return pictures
+    # def validate_pictures(self, pictures):
+    #     if len(pictures) > 10:
+    #         raise serializers.ValidationError('Sorry, but only business user can create more than 10 products.')
+    #     return pictures
 
 
 class FAQSerializer(serializers.ModelSerializer):
