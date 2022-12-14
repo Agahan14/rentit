@@ -10,7 +10,7 @@ class Contact(models.Model):
     friends = models.ManyToManyField('self', blank=True)
 
     def __str__(self):
-        return self.user.id
+        return self.user.pk
 
 
 class Message(models.Model):
@@ -20,7 +20,7 @@ class Message(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.contact.user.id
+        return self.contact.user.pk
 
 
 class Chat(models.Model):

@@ -41,7 +41,7 @@ class ChatConsumer(WebsocketConsumer):
     def message_to_json(self, message):
         return {
             'id': message.id,
-            'author': message.contact.user.id,
+            'author': message.contact.user.pk,
             'content': message.content,
             'timestamp': str(message.timestamp)
         }
