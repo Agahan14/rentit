@@ -71,7 +71,7 @@ class ProductCategorySerializer(serializers.ModelSerializer):
 
 class ProductSerializer(serializers.ModelSerializer):
     likes = serializers.SerializerMethodField()
-    pictures = PicturesSerializer(many=True)
+    pictures = PicturesSerializer(many=True, required=False)
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     rating = serializers.SerializerMethodField()
 
