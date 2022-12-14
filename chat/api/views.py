@@ -11,6 +11,7 @@ from rest_framework.generics import (
 from chat.models import Chat, Contact
 from chat.views import get_user_contact
 from .serializers import ChatSerializer
+from rest_framework.response import Response
 
 User = get_user_model()
 
