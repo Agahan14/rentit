@@ -11,10 +11,21 @@ class Contact(models.Model):
     friends = models.ManyToManyField('self', blank=True)
 
     def __str__(self):
+
         return '{ user_id: ' + str(self.user.id) + \
                ', first_name: ' + self.user.first_name + \
                ', last_name: ' + self.user.last_name + \
                ', pictures: ' + str(self.user.pictures) + '}'
+
+    def __repr__(self):
+        return Response(
+            {
+                'first_name': self.user.first_name,
+                'last_name': self.user.last_name,
+                'user_id': self.user.id,
+                "pictures": self.user.pictures
+            }
+        )
 
 
 class Message(models.Model):
