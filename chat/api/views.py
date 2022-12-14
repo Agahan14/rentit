@@ -30,7 +30,7 @@ class ChatListView(ListAPIView):
         queryset = Chat.objects.all()
         number = self.request.query_params.get('pk', None)
         if number is not None:
-            contact = get_user_contact(pk)
+            contact = get_user_contact(number)
             queryset = contact.chats.all()
         return queryset
 
