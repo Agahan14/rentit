@@ -1,5 +1,5 @@
 from rest_framework import serializers
-
+import json
 from .models import (
     Product,
     ProductCategory,
@@ -93,20 +93,26 @@ class ProductSerializer(serializers.ModelSerializer):
             'is_active',
             'characteristic',
             'likes',
-            'pictures',
+            'picture1',
+            'picture2',
+            'picture3',
+            'picture4',
+            'picture5',
+            'picture6',
+            'picture7',
+            'picture8',
+            'picture9',
+            'picture10',
             'brand',
         ]
         read_only_fields = ('views', 'created_date', 'updated_date')
 
-    def create(self, validated_data):
-        pictures = validated_data.pop('pictures')
-        product = Product.objects.create(**validated_data)
-        print(pictures)
-        print(" asdasdas")
-        for picture in pictures:
-            Pictures.objects.create(**picture, product=product)
-            print(picture)
-        return product
+    # def create(self, validated_data):
+    #     pictures = validated_data.pop('pictures')
+    #     product = Product.objects.create(**validated_data)
+    #     for picture in pictures:
+    #         Pictures.objects.create(**picture, product=product)
+    #     return product
 
     def get_likes(self, obj):
         return obj.likes_count()
