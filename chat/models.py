@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from rest_framework.response import Response
 
 User = get_user_model()
 
@@ -10,7 +11,18 @@ class Contact(models.Model):
     friends = models.ManyToManyField('self', blank=True)
 
     def __str__(self):
-        return self.user.email
+        # return Response(
+        #     {
+        #         'first_name': self.user.first_name,
+        #         'email': self.user.email,
+        #         'user_id': str(self.user.id),
+        #         "pictures": str(self.user.pictures)
+        #     }
+        # )
+        return f"user_id: {self.user.id}, " \
+               f"first_name: {self.user.first_name}, " \
+               f"last_name: {self.user.last_name}, " \
+               f"picture: {self.user.pictures}"
 
 
 class Message(models.Model):
