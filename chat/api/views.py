@@ -18,6 +18,7 @@ User = get_user_model()
 def get_user_contact(email):
     user = get_object_or_404(User, email=email)
     contact = get_object_or_404(Contact, user=user)
+    return contact
 
 
 class ChatListView(ListAPIView):
