@@ -1,11 +1,26 @@
-from channels.auth import AuthMiddlewareStack
+# from channels.auth import AuthMiddlewareStack
+# from channels.routing import ProtocolTypeRouter, URLRouter
+# import chat.routing
+#
+# application = ProtocolTypeRouter({
+#     'websocket': AuthMiddlewareStack(
+#         URLRouter(
+#             chat.routing.websocket_urlpatterns
+#         )
+#     ),
+# })
 from channels.routing import ProtocolTypeRouter, URLRouter
-import chat.routing
-
+# import app.routing
+from django.urls import re_path
+from chat.consumers import ChatConsumer
+websocket_urlpatterns = [
+    re_path(r'^ws/(?P<room_name>[^/]+)/$', ChatConsumer.as_asgi()),
+]
+# the websocket will open at 127.0.0.1:8000/ws/<room_name>
 application = ProtocolTypeRouter({
-    'websocket': AuthMiddlewareStack(
+    'websocket':
         URLRouter(
-            chat.routing.websocket_urlpatterns
+            websocket_urlpatterns
         )
-    ),
+    ,
 })
