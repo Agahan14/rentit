@@ -54,8 +54,13 @@ class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
     queryset = Product.objects.all()
     pagination_class = CustomPagination
-    filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
+    filter_backends = (
+        DjangoFilterBackend,
+        filters.OrderingFilter,
+        filters.SearchFilter,
+    )
     filterset_fields = ['sub_category', 'sub_category__product_category']
+    search_fields = ['name',]
 
     def retrieve(self, request, *args, **kwargs):
         obj = self.get_object()
