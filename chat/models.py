@@ -12,15 +12,15 @@ class Contact(models.Model):
 
     def __str__(self):
         if self.user.pictures == "":
-            return '{"user_id":' + str(self.user.id) + \
-                   ', "first_name":' + self.user.first_name + \
-                   ', "last_name":' + self.user.last_name + \
+            return '{"user_id":' + '"' +str(self.user.id) + '"' +\
+                   ', "first_name":' + '"' + self.user.first_name + '"' + \
+                   ', "last_name":' + '"' + self.user.last_name + '"' +\
                    ', "pictures":null' + '}'
 
-        return '{"user_id":' + str(self.user.id) + \
-               ', "first_name":' + self.user.first_name + \
-               ', "last_name":' + self.user.last_name + \
-               ', "pictures":' + str(self.user.pictures) + '}'
+        return '{"user_id":' + '"' + str(self.user.id) + '"' +\
+               ', "first_name":' + '"' +  self.user.first_name + '"' + \
+               ', "last_name":' + '"' +self.user.last_name + '"' + \
+               ', "pictures":' + '"' +str(self.user.pictures) + '"' +'}'
 
     def __repr__(self):
         return Response(
