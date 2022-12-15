@@ -11,16 +11,17 @@ class Contact(models.Model):
     friends = models.ManyToManyField('self', blank=True)
 
     def __str__(self):
-        if self.user.pictures == "":
-            return '{user_id: ' + str(self.user.id) + \
-                   ', first_name: ' + self.user.first_name + \
-                   ', last_name: ' + self.user.last_name + \
-                   ', pictures: null' + '}'
-
-        return '{user_id: ' + str(self.user.id) + \
-               ', first_name: ' + self.user.first_name + \
-               ', last_name: ' + self.user.last_name + \
-               ', pictures: ' + str(self.user.pictures) + '}'
+        return self.user
+        # if self.user.pictures == "":
+        #     return '{user_id: ' + str(self.user.id) + \
+        #            ', first_name: ' + self.user.first_name + \
+        #            ', last_name: ' + self.user.last_name + \
+        #            ', pictures: null' + '}'
+        #
+        # return '{user_id: ' + str(self.user.id) + \
+        #        ', first_name: ' + self.user.first_name + \
+        #        ', last_name: ' + self.user.last_name + \
+        #        ', pictures: ' + str(self.user.pictures) + '}'
 
     def __repr__(self):
         return Response(
