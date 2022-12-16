@@ -57,6 +57,7 @@ from .serializers import (
     PropsSerializer,
     GetTariffSerializer,
     TariffSerializer,
+    FavoriteProductsSerializer,
 )
 from .utils import Util
 
@@ -405,5 +406,11 @@ class PropsViewSet(viewsets.ModelViewSet):
     serializer_class = PropsSerializer
     queryset = Props.objects.all()
 
+
 def index(request):
     return render(request, 'index.html')
+
+
+class FavoriteProductViewSet(viewsets.ModelViewSet):
+    serializer_class = FavoriteProductsSerializer
+    queryset = User.objects.all()

@@ -32,6 +32,7 @@ from .views import (
     TariffViewSet,
     PropsViewSet,
     index,
+    FavoriteProductViewSet,
 )
 
 
@@ -50,6 +51,7 @@ users_router.register(r'archive-list', ArchiveListUserViewSet, basename='archive
 users_router.register(r'create-tariff', TariffViewSet, basename='create-tariff')
 users_router.register(r'get-tariff', GetTariffViewSet, basename='get-tariff')
 users_router.register(r'props', PropsViewSet, basename='props')
+users_router.register(r'favorite-products', FavoriteProductViewSet, basename='favorites')
 
 
 urlpatterns = [

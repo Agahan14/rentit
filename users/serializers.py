@@ -148,8 +148,18 @@ class UserListSerializer(serializers.ModelSerializer):
         return total_rating
 
 
-class UserProfileSerializer(serializers.ModelSerializer):
+class FavoriteProductsSerializer(serializers.ModelSerializer):
     product_like = ProductSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = User
+        fields = [
+            'product_like'
+        ]
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+
 
     class Meta:
         model = User
