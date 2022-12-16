@@ -171,17 +171,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
         ]
 
 
-class UserProductSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fileds = [
-            'id',
-            'first_name',
-            'last_name',
-
-        ]
-
-
 class UserMiniSerializer(serializers.ModelSerializer):
     age = serializers.SerializerMethodField()
 

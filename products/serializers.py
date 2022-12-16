@@ -9,7 +9,7 @@ from .models import (
     FAQ,
     Rating, ProductSubCategory, Brand,
 )
-# from users.serializers import UserProductSerializer
+from users.models import User
 
 
 class PicturesSerializer(serializers.ModelSerializer):
@@ -70,10 +70,21 @@ class ProductCategorySerializer(serializers.ModelSerializer):
         ]
 
 
+class UserProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'first_name',
+            'last_name',
+            'pictures',
+        ]
+
+
 class ProductSerializer(serializers.ModelSerializer):
     likes = serializers.SerializerMethodField()
     # pictures = PicturesSerializer(many=True)
-    # user = UserProductSerializer(read_only=True)
+    user = UserProductSerializer(read_only=True, default=serializers.CurrentUserDefault())
     # user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     rating = serializers.SerializerMethodField()
 
