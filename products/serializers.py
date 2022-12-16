@@ -9,6 +9,7 @@ from .models import (
     FAQ,
     Rating, ProductSubCategory, Brand,
 )
+# from users.serializers import UserProductSerializer
 
 
 class PicturesSerializer(serializers.ModelSerializer):
@@ -72,6 +73,7 @@ class ProductCategorySerializer(serializers.ModelSerializer):
 class ProductSerializer(serializers.ModelSerializer):
     likes = serializers.SerializerMethodField()
     # pictures = PicturesSerializer(many=True)
+    # user = UserProductSerializer(read_only=True)
     # user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     rating = serializers.SerializerMethodField()
 
@@ -142,6 +144,8 @@ class ProductSerializer(serializers.ModelSerializer):
     #     if len(pictures) > 10:
     #         raise serializers.ValidationError('Sorry, but only business user can create more than 10 products.')
     #     return pictures
+
+
 
 
 class FAQSerializer(serializers.ModelSerializer):

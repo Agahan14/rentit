@@ -59,8 +59,8 @@ class ProductViewSet(viewsets.ModelViewSet):
         filters.OrderingFilter,
         filters.SearchFilter,
     )
-    filterset_fields = ['sub_category', 'sub_category__product_category']
-    search_fields = ['name',]
+    filterset_fields = ['sub_category', 'sub_category__product_category', 'user']
+    search_fields = ['name', ]
 
     def retrieve(self, request, *args, **kwargs):
         obj = self.get_object()
