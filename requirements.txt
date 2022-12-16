@@ -98,3 +98,4 @@ whitenoise==6.2.0
 wrapt==1.14.1
 WTForms==3.0.1
 zipp==3.8.1
+daphne==4.0.0
