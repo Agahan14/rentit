@@ -99,7 +99,7 @@ class RegisterView(generics.GenericAPIView):
             token = RefreshToken.for_user(user)
             current_site = request.get_host()
             link = reverse("email_verify")
-            url = "https://" + current_site + link + "?token=" + str(token)
+            url = "http://" + current_site + link + "?token=" + str(token)
             body = "Hi " + " Use the link below to verify your email \n" + url
             data = {
                 "email_body": body,
