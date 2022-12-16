@@ -163,7 +163,7 @@ class LoginView(generics.GenericAPIView):
                 'first_name': user.first_name,
                 'email': user.email,
                 'user_type': user.user_type,
-                'user_pictures': str(user.pictures),
+                'user_pictures': user.pictures,
                 'followers': str(user.followers.count()),
                 'followings': str(user.following.count()),
                 'user_id': str(user.id),
