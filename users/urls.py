@@ -33,6 +33,7 @@ from .views import (
     PropsViewSet,
     index,
     FavoriteProductViewSet,
+    StatisticUserView,
 )
 
 
@@ -70,5 +71,5 @@ urlpatterns = [
     path("reset-password/<int:pk>", ResetPasswordView.as_view(), name="change-password"),
     path('change-password/<int:pk>/', ChangePasswordView.as_view(), name='auth_change_password'),
     path('index', index, name='index'),
-
+    path('user-statistic', StatisticUserView.as_view(), name='user-statistic')
 ]

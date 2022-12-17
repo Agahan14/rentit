@@ -414,3 +414,15 @@ def index(request):
 class FavoriteProductViewSet(viewsets.ModelViewSet):
     serializer_class = FavoriteProductsSerializer
     queryset = User.objects.all()
+
+
+class StatisticUserView(APIView):
+    def get(self, request, *args, **kwargs):
+
+        user = User.objects.filter(is_social=False)
+        social_user = User.objects.filter(is_social=True)
+
+        return Response({
+            'social_user': social_user.count(),
+            'user': user.count()
+        })
