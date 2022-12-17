@@ -1,15 +1,17 @@
-import jwt
 import random
 import string
+
+import jwt
 from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from dj_rest_auth.registration.serializers import SocialLoginSerializer
+from dj_rest_auth.registration.views import SocialLoginView
 from django.core.mail import send_mail
+from django.db.models import Count, Q
 from django.shortcuts import render
 from django.urls import reverse
 from django_filters.rest_framework import DjangoFilterBackend
-from dj_rest_auth.registration.serializers import SocialLoginSerializer
-from dj_rest_auth.registration.views import SocialLoginView
 from rest_framework import (
     generics,
     status,
@@ -27,6 +29,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from twilio.rest import Client
+
 from rentit import settings
 from .models import (
     User,
@@ -116,7 +119,6 @@ class RegisterView(generics.GenericAPIView):
 class VerifyEmailView(APIView):
     serializer_class = EmailVerificationSerializer
     permission_classes = [AllowAny]
-
 
     def get(self, request):
         token = request.GET.get("token")
@@ -272,7 +274,6 @@ class ResetPasswordView(generics.UpdateAPIView):
 
 
 class ChangePasswordView(generics.UpdateAPIView):
-
     queryset = User.objects.all()
     # permission_classes = (IsAuthenticated,)
     serializer_class = ChangePasswordSerializer
@@ -288,7 +289,7 @@ class ClientViewSet(viewsets.ModelViewSet):
 class UserProfileViewSet(viewsets.ModelViewSet):
     queryset = User.objects.filter(is_archive=False)
     serializer_class = UserProfileSerializer
-    
+
     # def get_queryset(self):
     #     return User.objects.filter(id=self.request.user.id)
     # http_method_names = ['get', 'put', 'patch']
@@ -418,7 +419,6 @@ class FavoriteProductViewSet(viewsets.ModelViewSet):
 
 class StatisticUserView(APIView):
     def get(self, request, *args, **kwargs):
-
         user = User.objects.filter(is_social=False)
         social_user = User.objects.filter(is_social=True)
 
@@ -426,3 +426,38 @@ class StatisticUserView(APIView):
             'social_user': social_user.count(),
             'user': user.count()
         })
+
+
+class UserRegisterStatisticView(APIView):
+    def get(self, request, *args, **kwargs):
+        # data = User.objects.annotate(january=Count('date_joined', filter=Q(date_joined__year=2022, date_joined__month=1)),
+        #                              february=Count('date_joined', filter=Q(date_joined__year=2022, date_joined__month=2)),
+        #                              march=Count('date_joined', filter=Q(date_joined__year=2022, date_joined__month=3)),
+        #                              april=Count('date_joined', filter=Q(date_joined__year=2022, date_joined__month=4)),
+        #                              may=Count('date_joined', filter=Q(date_joined__year=2022, date_joined__month=5)),
+        #                              june=Count('date_joined', filter=Q(date_joined__year=2022, date_joined__month=6)),
+        #                              july=Count('date_joined', filter=Q(date_joined__year=2022, date_joined__month=7)),
+        #                              august=Count('date_joined', filter=Q(date_joined__year=2022, date_joined__month=8)),
+        #                              september=Count('date_joined',
+        #                                              filter=Q(date_joined__year=2022, date_joined__month=9)),
+        #                              october=Count('date_joined', filter=Q(date_joined__year=2022, date_joined__month=10)),
+        #                              november=Count('date_joined',
+        #                                             filter=Q(date_joined__year=2022, date_joined__month=11)),
+        #                              december=Count('date_joined__month',
+        #                                             filter=Q(date_joined__year=2022, date_joined__month=12)))
+        data = dict(
+            one=User.objects.filter(date_joined__month=1, date_joined__year=2022).count(),
+        two=User.objects.filter(date_joined__month=2, date_joined__year=2022).count(),
+            three=User.objects.filter(date_joined__month=3, date_joined__year=2022).count(),
+            four=User.objects.filter(date_joined__month=4, date_joined__year=2022).count(),
+            five=User.objects.filter(date_joined__month=5, date_joined__year=2022).count(),
+            six=User.objects.filter(date_joined__month=6, date_joined__year=2022).count(),
+            seven=User.objects.filter(date_joined__month=7, date_joined__year=2022).count(),
+            eight=User.objects.filter(date_joined__month=8, date_joined__year=2022).count(),
+            nine=User.objects.filter(date_joined__month=9, date_joined__year=2022).count(),
+            ten=User.objects.filter(date_joined__month=10, date_joined__year=2022).count(),
+            eleven=User.objects.filter(date_joined__month=11, date_joined__year=2022).count(),
+            twelve=User.objects.filter(date_joined__month=12, date_joined__year=2022).count(),
+        )
+        print(data)
+        return Response(data)
