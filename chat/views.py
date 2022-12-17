@@ -1,19 +1,18 @@
-from django.contrib.auth import get_user_model
-from django.shortcuts import render, get_object_or_404
-from .models import Chat, Contact
+from django.shortcuts import render
 
-User = get_user_model()
+from chat.models import Room, Message
 
 
-def get_last_10_messages(chatId):
-    chat = get_object_or_404(Chat, id=chatId)
-    return chat.messages.order_by('-timestamp').all()[:10]
+def index_view(request):
+    return render(request, 'chat/index.html', {
+        'rooms': Room.objects.all(),
+    })
 
 
-def get_user_contact(pk):
-    user = get_object_or_404(User, pk=pk)
-    return get_object_or_404(Contact, user=user)
-
-
-def get_current_chat(chatId):
-    return get_object_or_404(Chat, id=chatId)
+def room_view(request, id):
+    chat_room, created = Room.objects.get_or_create(id=id)
+    messages = Message.objects.filter(room=chat_room)
+    return render(request, 'chat/room.html', {
+        'room': chat_room,
+        'messages': messages
+    })
