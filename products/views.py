@@ -125,6 +125,7 @@ class RatingViewSet(viewsets.ModelViewSet):
 
 class FollowingViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
+    pagination_class = CustomPagination
 
     def get_queryset(self):
         if self.request.user.is_anonymous:
