@@ -33,6 +33,7 @@ from .serializers import (
     RatingSerializer,
     ProductSubCategorySerializer,
     BrandSerializer,
+    ProductPostSerializer,
 )
 
 
@@ -68,6 +69,12 @@ class ProductViewSet(viewsets.ModelViewSet):
         obj.save(update_fields=['views', ])
         serializer = self.get_serializer(obj)
         return Response(serializer.data, status=200)
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return ProductSerializer
+        else:
+            return ProductPostSerializer
 
 
 class ProductCategoryViewSet(viewsets.ModelViewSet):

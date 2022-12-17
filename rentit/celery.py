@@ -17,8 +17,8 @@ app.autodiscover_tasks()
 
 # celery beat tasks
 app.conf.beat_schedule = {
-    'change-status-every-1-minute': {
+    'change-status-every-60-minute': {
         'task': 'users.tasks.change_beat_status',
-        'schedule': crontab(minute='*/1')
+        'schedule': crontab(minute='*/60')
     },
 }
