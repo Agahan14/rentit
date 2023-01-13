@@ -15,43 +15,45 @@ services:
     ports:
     - 8000:8000
     command: bash -c "python manage.py collectstatic --no-input && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    depends_on:
+      - db
 
   db:
-    image: postgres
+    image: postgres:latest
     restart: always
     env_file:
       - .env
     ports:
-      - "5432:5432"
+      - 5432:5432
     volumes:
       - "./postgres:/var/lib/postgresql/data"
 
 
-  celery:
+#  celery:
+#
+#    restart: always
+#    build: .
+#    command: celery -A rentit worker -l info
+#    volumes:
+#      - .:/app
+#    depends_on:
+#      - redis
+#
+#  celery-beat:
+#
+#    restart: always
+#    build: .
+#    command: celery -A rentit beat -l info
+#    volumes:
+#      - .:/app
+#    depends_on:
+#      - redis
 
-    restart: always
-    build: .
-    command: celery -A rentit worker -l info
-    volumes:
-      - .:/app
-    depends_on:
-      - redis
-
-  celery-beat:
-
-    restart: always
-    build: .
-    command: celery -A rentit beat -l info
-    volumes:
-      - .:/app
-    depends_on:
-      - redis
-
-  flower:
-    restart: always
-    build: .
-    ports:
-      - 5555:5555
-    command: celery -A rentit flower
+#  flower:
+#    restart: always
+#    build: .
+#    ports:
+#      - 5555:5555
+#    command: celery -A rentit flower
 
 

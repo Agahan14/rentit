@@ -7,7 +7,7 @@ from django_google_maps import fields as map_fields
 from django.db import models
 from django.utils import timezone
 from orders.models import Cart
-from django.conf import settings
+from rentit import settings
 
 
 class SuperUser(BaseUserManager):

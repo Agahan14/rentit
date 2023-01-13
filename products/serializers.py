@@ -143,6 +143,7 @@ class ProductSerializer(serializers.ModelSerializer):
             return round(total_rating / count, 1)
         return total_rating
 
+
     def validate_user(self, user):
         count = Product.objects.filter(user=user).count()
         if count >= 15 and user.is_business is False:
