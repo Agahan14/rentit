@@ -94,16 +94,6 @@ class Product(models.Model):
     characteristic = models.JSONField('Характеристики продукта')
     like = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='product_like', blank=True)
     currency = models.CharField(max_length=255, choices=currencies, default='some', null=True)
-    picture1 = models.ImageField(upload_to="images/", null=True, blank=True)
-    picture2 = models.ImageField(upload_to="images/", null=True, blank=True)
-    picture3 = models.ImageField(upload_to="images/", null=True, blank=True)
-    picture4 = models.ImageField(upload_to="images/", null=True, blank=True)
-    picture5 = models.ImageField(upload_to="images/", null=True, blank=True)
-    picture6 = models.ImageField(upload_to="images/", null=True, blank=True)
-    picture7 = models.ImageField(upload_to="images/", null=True, blank=True)
-    picture8 = models.ImageField(upload_to="images/", null=True, blank=True)
-    picture9 = models.ImageField(upload_to="images/", null=True, blank=True)
-    picture10 = models.ImageField(upload_to="images/", null=True, blank=True)
 
     def likes_count(self):
         return self.like.count()
