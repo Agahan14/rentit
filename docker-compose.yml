@@ -6,54 +6,54 @@ services:
     image: redis:alpine
     restart: always
     ports:
-    - 6379:6379
-
-  app:
-    build: .
-    volumes:
-      - .:/app
-    ports:
-    - 8000:8000
-    command: bash -c "python manage.py collectstatic --no-input && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
-    depends_on:
-      - db
+    - "6379:6379"
 
   db:
     image: postgres:latest
     restart: always
-    env_file:
-      - .env
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+      DATABASE_HOSTNAME: ${DB_HOST}
     ports:
-      - 5432:5432
+      - "5432:5432"
     volumes:
       - "./postgres:/var/lib/postgresql/data"
 
+  app:
+    build: .
+    volumes:
+      - .:/rentit
+    ports:
+    - "8000:8000"
+    command: bash -c "python manage.py collectstatic --no-input && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    depends_on:
+      - db
+  celery:
 
-#  celery:
-#
-#    restart: always
-#    build: .
-#    command: celery -A rentit worker -l info
-#    volumes:
-#      - .:/app
-#    depends_on:
-#      - redis
-#
-#  celery-beat:
-#
-#    restart: always
-#    build: .
-#    command: celery -A rentit beat -l info
-#    volumes:
-#      - .:/app
-#    depends_on:
-#      - redis
+    restart: always
+    build: .
+    command: celery -A rentit worker -l info
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
 
-#  flower:
-#    restart: always
-#    build: .
-#    ports:
-#      - 5555:5555
-#    command: celery -A rentit flower
+  celery-beat:
 
+    restart: always
+    build: .
+    command: celery -A rentit beat -l info
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+
+  flower:
+    restart: always
+    build: .
+    ports:
+      - 5555:5555
+    command: celery -A rentit flower
 
